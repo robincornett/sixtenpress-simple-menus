@@ -197,12 +197,12 @@ class SixTenPressSimpleMenuSettings {
 		$fields = array(
 			array(
 				'id'       => 'trickle',
-				'title'    => __( 'Use Content Type/Term Menus', 'sixtenpress-isotope' ),
+				'title'    => __( 'Use Content Type/Term Menus', 'sixtenpress-simple-menus' ),
 				'callback' => 'do_checkbox',
 				'section'  => 'general',
 				'args'     => array(
 					'setting' => 'trickle',
-					'label'   => __( 'Use content type/term menus on single posts if no menu is set', 'sixtenpress-isotope' ),
+					'label'   => __( 'Use content type/term menus on single posts if no menu is set', 'sixtenpress-simple-menus' ),
 				),
 			),
 		);
@@ -361,10 +361,12 @@ class SixTenPressSimpleMenuSettings {
 		$post_type  = $args['post_type'];
 		$checkbox_args = array(
 			'setting' => 'support',
-			'label'   => __( 'Enable Simple Menus for this post type?', 'sixtenpress-isotope' ),
+			'label'   => __( 'Enable Simple Menus for this post type?', 'sixtenpress-simple-menus' ),
 			'key'     => $post_type,
 		);
-		$this->do_checkbox( $checkbox_args );
+		if ( 'post' !== $post_type ) {
+			$this->do_checkbox( $checkbox_args );
+		}
 		echo '<br />';
 		$select_args = array(
 			'options' => 'menus',
