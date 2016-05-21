@@ -140,7 +140,7 @@ class SixTenPressSimpleMenuSettings {
 	/**
 	 * Register sections for settings page.
 	 *
-	 * @since 3.0.0
+	 * @since 0.1.0
 	 */
 	protected function register_sections() {
 
@@ -248,6 +248,10 @@ class SixTenPressSimpleMenuSettings {
 		}
 	}
 
+	/**
+	 * Callback for the general section.
+	 * @return string
+	 */
 	public function general_section_description() {
 		return '';
 	}
@@ -323,6 +327,15 @@ class SixTenPressSimpleMenuSettings {
 		$this->do_description( $args['setting'] );
 	}
 
+	/**
+	 * Get the setting for the select dropdown.
+	 * @param $args
+	 *
+	 * @return array {
+	 *               $setting int the current setting
+	 *               $label string label for the checkbox
+	 * }
+	 */
 	protected function get_select_setting( $args ) {
 		$setting = isset( $this->setting[ $args['setting'] ] ) ? $this->setting[ $args['setting'] ] : 0;
 		$label   = $args['setting'];
@@ -365,9 +378,10 @@ class SixTenPressSimpleMenuSettings {
 			'key'     => $post_type,
 		);
 		if ( 'post' !== $post_type ) {
+			echo '<p>';
 			$this->do_checkbox( $checkbox_args );
+			echo '</p>';
 		}
-		echo '<br />';
 		$select_args = array(
 			'options' => 'menus',
 			'setting' => 'menu',
@@ -376,6 +390,10 @@ class SixTenPressSimpleMenuSettings {
 		$this->do_select( $select_args );
 	}
 
+	/**
+	 * Get the list of menus for each post type.
+	 * @return mixed
+	 */
 	protected function pick_menus() {
 		$options[''] = __( 'Default Secondary Menu', 'sixtenpress-simple-menus' );
 		$menus       = wp_get_nav_menus( array( 'orderby' => 'name' ) );
@@ -385,6 +403,12 @@ class SixTenPressSimpleMenuSettings {
 		return $options;
 	}
 
+	/**
+	 * Sanitize/validate all settings.
+	 * @param $new_value
+	 *
+	 * @return array
+	 */
 	public function do_validation_things( $new_value ) {
 		$action = $this->page . '_save-settings';
 		$nonce  = $this->page . '_nonce';
@@ -408,7 +432,7 @@ class SixTenPressSimpleMenuSettings {
 					$new_value[ $field['id'] ] = $this->one_zero( $new_value[ $field['id'] ] );
 					break;
 				case 'do_select':
-					$new_value[ $field['id'] ] = (int) $new_value[ $field['id'] ];
+					$new_value[ $field['id'] ] = esc_attr( $new_value[ $field['id'] ] );
 					break;
 			}
 		}
