@@ -45,9 +45,11 @@ class SixTenPressSimpleMenusAdmin {
 			return;
 		}
 
-		register_meta( 'term', $this->field_name, 'esc_attr' );
-		foreach ( $this->taxonomies as $tax ) {
-			add_action( "{$tax}_edit_form_fields", array( $this, 'term_edit' ) );
+		register_meta( 'term', $this->field_name, array( $this, 'validate_term' ) );
+		foreach ( $this->taxonomies as $taxonomy ) {
+			add_action( "{$taxonomy}_edit_form_fields", array( $this, 'term_edit' ) );
+			add_action( "edited_{$taxonomy}", array( $this, 'save_taxonomy_custom_meta' ) );
+			add_action( "edit_{$taxonomy}", array( $this, 'save_taxonomy_custom_meta' ) );
 		}
 	}
 
@@ -128,5 +130,39 @@ class SixTenPressSimpleMenusAdmin {
 		} else {
 			update_post_meta( $post_id, $this->field_name, $_POST[ $this->field_name ] );
 		}
+	}
+
+	public function save_taxonomy_custom_meta( $term_id ) {
+
+		if ( ! isset( $_POST[ $this->field_name ] ) ) {
+			return;
+		}
+		$input = $_POST[ $this->field_name ];
+		$this->update_term_meta( $term_id, $input );
+	}
+
+	/**
+	 * update/delete term meta
+	 * @param  int $term_id        term id
+	 * @param  array $displaysetting old option, if it exists
+	 * @return term_meta
+	 *
+	 * @since 2.4.0
+	 */
+	protected function update_term_meta( $term_id, $input ) {
+		if ( '' === $input ) {
+			delete_term_meta( $term_id, $this->field_name );
+		}
+		$current_setting = get_term_meta( $term_id, $this->field_name );
+		if ( $current_setting !== $input ) {
+			update_term_meta( $term_id, $this->field_name, (int) $input );
+		}
+	}
+
+	function validate_term( $new_value ) {
+		if ( empty( $new_value ) ) {
+			return;
+		}
+		return (int) $new_value;
 	}
 }
