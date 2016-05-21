@@ -1,0 +1,41 @@
+=== 6/10 Press Simple Menus ===
+
+Contributors: littler.chicken
+Donate link: https://robincornett.com/donate/
+Tags: Genesis, StudioPress, secondary navigation, navigation
+Requires at least: 4.4
+Tested up to: 4.5
+Stable tag: 0.1.0
+License: GPL-2.0+
+License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+
+This plugin works within the Genesis Framework, to allow users to dynamically change their secondary menu throughout their site.
+
+== Description ==
+
+This plugin is a fork of *Genesis Simple Menus*. This plugin goes a step or two farther than the original, as it allows a series of fallback secondary menus based on terms and post types (the original required that the menu be set for each and every post).
+
+== Installation ==
+
+1. Upload the entire `sixtenpress-simple-menus` folder to your `/wp-content/plugins` directory.
+1. Activate the plugin through the 'Plugins' menu in WordPress.
+1. Optionally, visit the Settings > Media page to change the default behavior of the plugin.
+
+== Frequently Asked Questions ==
+
+= What if I've been using Genesis Simple Menus? Can I switch? =
+
+Yes, you should be able to. I've coded this to pull the existing metadata from Genesis Simple Menus and this plugin will attempt to honor those settings. This plugin will not run if Genesis Simple Menus is active.
+
+= Why WordPress 4.4? =
+
+Because of term metadata and I didn't want to mess with ancient history compatibility.
+
+== Upgrade Notice ==
+= 0.1.0 =
+First release.
+
+== Changelog ==
+
+= 0.1.0 =
+* Initial fork and release on Github
