@@ -6,10 +6,22 @@
  */
 class SixTenPressSimpleMenusAdmin {
 
-	protected $handle     = 'sixtenpress-post-metabox';
-	protected $nonce_key  = 'sixtenpress-post-metabox-nonce';
-	protected $field_name = '_sixtenpress_simplemenu';
-	protected $menu       = null;
+	/**
+	 * Metabox ID.
+	 * @var string
+	 */
+	protected $handle = 'sixtenpress-post-metabox';
+
+	/**
+	 * Post/term meta key
+	 * @var string
+	 */
+	protected $meta_key = '_sixtenpress_simplemenu';
+
+	/**
+	 * All public taxonomies
+	 * @var null
+	 */
 	protected $taxonomies = null;
 
 	/*
@@ -17,25 +29,26 @@ class SixTenPressSimpleMenusAdmin {
 	 */
 	public function set_post_metaboxes() {
 
-		$post_types = $this->get_post_types();
-		foreach ( $post_types as $type ) {
+		foreach ( (array) get_post_types( array( 'public' => true ) ) as $post_type ) {
 			$setting = sixtenpresssimplemenus_get_setting();
-			if ( isset( $setting[ $type ]['support'] ) && $setting[ $type ]['support'] ) {
-				add_post_type_support( $type, 'sixtenpress-simple-menus' );
+			if ( isset( $setting[ $post_type ]['support'] ) && $setting[ $post_type ]['support'] ) {
+				add_post_type_support( $post_type, 'sixtenpress-simple-menus' );
 			}
-			if ( in_array( $type, array( 'post', 'page' ), true ) || post_type_supports( $type, 'sixtenpress-simple-menus' ) || post_type_supports( $type, 'genesis-simple-menus' ) ) {
-				add_meta_box( $this->handle, __( 'Secondary Navigation', 'sixtenpress-simple-menus' ), array(
-					$this,
-					'do_post_metabox',
-				), $type, 'side', 'low' );
+			if ( in_array( $post_type, array( 'post', 'page' ), true ) || post_type_supports( $post_type, 'sixtenpress-simple-menus' ) || post_type_supports( $post_type, 'genesis-simple-menus' ) ) {
+				add_meta_box( $this->handle,
+					__( 'Secondary Navigation', 'sixtenpress-simple-menus' ),
+					array( $this, 'do_post_metabox' ),
+					$post_type,
+					'side',
+					'low'
+				);
 			}
 		}
 	}
 
-	protected function get_post_types() {
-		return (array) get_post_types( array( 'public' => true ) );
-	}
-
+	/**
+	 * Add metaboxes to supported taxonomy terms
+	 */
 	public function set_taxonomy_metaboxes() {
 
 		$_taxonomies      = get_taxonomies( array( 'show_ui' => true, 'public' => true ) );
@@ -45,7 +58,7 @@ class SixTenPressSimpleMenusAdmin {
 			return;
 		}
 
-		register_meta( 'term', $this->field_name, array( $this, 'validate_term' ) );
+		register_meta( 'term', $this->meta_key, array( $this, 'validate_term' ) );
 		foreach ( $this->taxonomies as $taxonomy ) {
 			add_action( "{$taxonomy}_edit_form_fields", array( $this, 'term_edit' ) );
 			add_action( "edited_{$taxonomy}", array( $this, 'save_taxonomy_custom_meta' ) );
@@ -53,44 +66,43 @@ class SixTenPressSimpleMenusAdmin {
 		}
 	}
 
-	/*
+	/**
 	 * Does the metabox on the post edit page
 	 */
 	public function do_post_metabox() {
 		echo '<p>';
-			$this->print_menu_select( $this->field_name, sixtenpresssimplemenus_get_menu() );
+			$this->print_menu_select( $this->meta_key, sixtenpresssimplemenus_get_menu() );
 		echo '</p>';
 	}
 
-	/*
+	/**
 	 * Does the metabox on the term edit page
+	 * @param $term
 	 */
 	public function term_edit( $term ) {
 
-		$menu = sixtenpresssimplemenus_get_term_meta( $term, $this->field_name );
+		$menu = sixtenpresssimplemenus_get_term_meta( $term, $this->meta_key );
 
 		echo '<tr class="form-field">';
 		printf( '<th scope="row" valign="top"><label for="%s">%s</label></th>',
-			esc_attr( $this->field_name ),
+			esc_attr( $this->meta_key ),
 			esc_attr__( 'Secondary Navigation', 'sixtenpress-simple-menus' )
 		);
 		echo '<td>';
-			$this->print_menu_select( $this->field_name, $menu );
+			$this->print_menu_select( $this->meta_key, $menu );
 		echo '</td>';
 		echo '</tr>';
 	}
 
-	public function cpt_edit() {
-
-	}
-
-	/*
-	 * Support function for the metaboxes, outputs the menu dropdown
+	/**
+	 * Support function for the metaboxes, outputs the menu dropdown.
+	 * @param $field_name
+	 * @param $selected
 	 */
-	function print_menu_select( $field_name, $selected ) {
+	protected function print_menu_select( $field_name, $selected ) {
 
 		printf( '<select name="%1$s" id="%1$s">', $field_name );
-			printf ( '<option value="">%s</option>', __( 'Default Secondary Menu', 'sixtenpress-simple-menus' ) );
+			printf ( '<option value="">%s</option>', __( 'Default Secondary Navigation', 'sixtenpress-simple-menus' ) );
 			$menus = wp_get_nav_menus( array( 'orderby' => 'name' ) );
 			foreach ( $menus as $menu ) {
 				printf( '<option value="%d" %s>%s</option>', $menu->term_id, selected( $menu->term_id, $selected, false ), esc_html( $menu->name ) );
@@ -98,8 +110,10 @@ class SixTenPressSimpleMenusAdmin {
 		echo '</select>';
 	}
 
-	/*
+	/**
 	 * Handles the post save & stores the menu selection in the post meta
+	 * @param $post_id
+	 * @param $post
 	 */
 	public function save_post( $post_id, $post ) {
 
@@ -125,44 +139,39 @@ class SixTenPressSimpleMenusAdmin {
 			return;
 		}
 
-		if ( empty( $_POST[ $this->field_name ] ) ) {
-			delete_post_meta( $post_id, $this->field_name );
+		if ( empty( $_POST[ $this->meta_key ] ) ) {
+			delete_post_meta( $post_id, $this->meta_key );
 		} else {
-			update_post_meta( $post_id, $this->field_name, $_POST[ $this->field_name ] );
+			update_post_meta( $post_id, $this->meta_key, $_POST[$this->meta_key ] );
 		}
-	}
-
-	public function save_taxonomy_custom_meta( $term_id ) {
-
-		if ( ! isset( $_POST[ $this->field_name ] ) ) {
-			return;
-		}
-		$input = $_POST[ $this->field_name ];
-		$this->update_term_meta( $term_id, $input );
 	}
 
 	/**
-	 * update/delete term meta
-	 * @param  int $term_id        term id
-	 * @param  array $displaysetting old option, if it exists
-	 * @return term_meta
-	 *
-	 * @since 2.4.0
+	 * Save the new term metadata.
+	 * @param $term_id
 	 */
-	protected function update_term_meta( $term_id, $input ) {
-		if ( '' === $input ) {
-			delete_term_meta( $term_id, $this->field_name );
+	public function save_taxonomy_custom_meta( $term_id ) {
+
+		if ( ! isset( $_POST[ $this->meta_key ] ) ) {
+			return;
 		}
-		$current_setting = get_term_meta( $term_id, $this->field_name );
+		$input = $_POST[ $this->meta_key ];
+		if ( empty( $input ) ) {
+			delete_term_meta( $term_id, $this->meta_key );
+			return;
+		}
+		$current_setting = get_term_meta( $term_id, $this->meta_key );
 		if ( $current_setting !== $input ) {
-			update_term_meta( $term_id, $this->field_name, (int) $input );
+			update_term_meta( $term_id, $this->meta_key, (int) $input );
 		}
 	}
 
-	function validate_term( $new_value ) {
-		if ( empty( $new_value ) ) {
-			return;
-		}
-		return (int) $new_value;
+	/**
+	 * @param $input
+	 *
+	 * @return int|string
+	 */
+	function validate_term( $input ) {
+		return ( empty( $input ) ) ? '' : (int) $input;
 	}
 }
