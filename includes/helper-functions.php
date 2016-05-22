@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright $year Robin Cornett
+ * @copyright 2016 Robin Cornett
  */
 
 function sixtenpresssimplemenus_get_menu( $post_id = '' ) {

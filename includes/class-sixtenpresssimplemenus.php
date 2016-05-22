@@ -57,7 +57,6 @@ class SixTenPressSimpleMenus {
 		}
 		add_action( 'admin_menu', array( $this->admin, 'set_post_metaboxes' ) );
 		add_action( 'admin_menu', array( $this->admin, 'set_taxonomy_metaboxes' ) );
-		add_action( 'save_post', array( $this->admin, 'save_post' ) );
 		add_action( 'admin_menu', array( $this->settings, 'do_submenu_page' ) );
 		add_filter( 'sixtenpresssimplemenus_get_setting', array( $this->settings, 'get_setting' ) );
 		add_filter( 'theme_mod_nav_menu_locations', array( $this->output, 'replace_menu' ) );
