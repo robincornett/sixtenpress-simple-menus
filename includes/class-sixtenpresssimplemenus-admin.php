@@ -102,13 +102,14 @@ class SixTenPressSimpleMenusAdmin {
 	 */
 	protected function print_menu_select( $field_name, $selected ) {
 
+		printf( '<label for="%s">', esc_attr( $field_name ) );
 		printf( '<select name="%1$s" id="%1$s">', $field_name );
 			printf ( '<option value="">%s</option>', __( 'Default Secondary Navigation', 'sixtenpress-simple-menus' ) );
 			$menus = wp_get_nav_menus( array( 'orderby' => 'name' ) );
 			foreach ( $menus as $menu ) {
 				printf( '<option value="%d" %s>%s</option>', $menu->term_id, selected( $menu->term_id, $selected, false ), esc_html( $menu->name ) );
 			}
-		echo '</select>';
+		echo '</select></label>';
 	}
 
 	/**
