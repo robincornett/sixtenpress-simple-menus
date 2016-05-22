@@ -26,6 +26,7 @@ class SixTenPressSimpleMenusOutput {
 
 	/**
 	 * Return the custom menu for output to the filter.
+	 *
 	 * @param string $menu
 	 *
 	 * @return mixed|string
@@ -54,6 +55,10 @@ class SixTenPressSimpleMenusOutput {
 			if ( ! $menu ) {
 				$post_menu = sixtenpresssimplemenus_get_menu() ? sixtenpresssimplemenus_get_menu() : $this->get_term_menu( $menu );
 			}
+			if ( is_page() && ! $post_menu ) {
+				$parent_ID = $this->get_parent_ID();
+				$post_menu = sixtenpresssimplemenus_get_menu( $parent_ID );
+			}
 			$menu = $post_menu ? $post_menu : $menu;
 		}
 
@@ -62,6 +67,7 @@ class SixTenPressSimpleMenusOutput {
 
 	/**
 	 * Get the menu related to the most popular taxonomy tied to the post.
+	 *
 	 * @param $menu
 	 *
 	 * @return int
@@ -80,5 +86,15 @@ class SixTenPressSimpleMenusOutput {
 		}
 
 		return (int) $menu;
+	}
+
+	protected function get_parent_ID() {
+		if ( ! is_page() ) {
+			return false;
+		}
+		/* Get an array of Ancestors and Parents if they exist */
+		$parents = array_reverse( get_post_ancestors( get_the_ID() ) );
+		/* Get the top Level page->ID count base 1, array base 0 so -1 */
+		return (array) $parents ? $parents[0] : get_the_ID();
 	}
 }

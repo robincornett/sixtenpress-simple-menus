@@ -3,10 +3,13 @@
  * @copyright $year Robin Cornett
  */
 
-function sixtenpresssimplemenus_get_menu() {
-	$menu_key = get_post_meta( get_the_ID(), '_sixtenpress_simplemenu', true );
+function sixtenpresssimplemenus_get_menu( $post_id = '' ) {
+	if ( empty( $post_id ) ) {
+		$post_id = get_the_ID();
+	}
+	$menu_key = get_post_meta( $post_id, '_sixtenpress_simplemenu', true );
 	if ( ! $menu_key ) {
-		$menu_key = get_post_meta( get_the_ID(), '_gsm_menu', true );
+		$menu_key = get_post_meta( $post_id, '_gsm_menu', true );
 	}
 	return $menu_key;
 }
