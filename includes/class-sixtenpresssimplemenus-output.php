@@ -33,16 +33,22 @@ class SixTenPressSimpleMenusOutput {
 	 */
 	protected function get_menu( $menu = false ) {
 
+		/**
+		 * If it's a singular post/page and we aren't trickling menus,
+		 * get the menu and return.
+		 */
 		$setting = sixtenpresssimplemenus_get_setting();
-
 		if ( is_singular() && ! $setting['trickle'] ) {
 			return sixtenpresssimplemenus_get_menu();
 		}
 
+		// Sets menu based on post type. True for archives and singular.
 		$post_type = get_post_type();
 		if ( isset( $setting[ $post_type ]['menu'] ) ) {
 			$menu = $setting[ $post_type ]['menu'];
 		}
+
+		// Check for term menus on taxonomy archives.
 		if ( is_category() || is_tag() || is_tax() ) {
 			$term = is_tax() ? get_term_by( 'slug', get_query_var( 'term' ), get_query_var( 'taxonomy' ) ) : get_queried_object();
 			if ( $term ) {
@@ -50,19 +56,38 @@ class SixTenPressSimpleMenusOutput {
 				$menu      = $term_menu ? $term_menu : $menu;
 			}
 		}
+
+		// Set the menu on a singular post/page.
 		if ( is_singular() ) {
-			$post_menu = false;
-			if ( ! $menu ) {
-				$post_menu = sixtenpresssimplemenus_get_menu() ? sixtenpresssimplemenus_get_menu() : $this->get_term_menu( $menu );
-			}
-			if ( is_page() && ! $post_menu ) {
-				$parent_ID = $this->get_parent_ID();
-				$post_menu = sixtenpresssimplemenus_get_menu( $parent_ID );
-			}
-			$menu = $post_menu ? $post_menu : $menu;
+			$menu = $this->get_singular_menu( $menu );
 		}
 
 		return $menu;
+	}
+
+	/**
+	 * Set menu on singular posts/pages. Uses post type menu as the default,
+	 * then check for a term menu, and override if there is a singular menu.
+	 * @param $menu
+	 *
+	 * @return int|mixed
+	 */
+	protected function get_singular_menu( $menu ) {
+
+		// Check for a specifically set menu. If there is one, run.
+		$post_menu = sixtenpresssimplemenus_get_menu();
+		if ( $post_menu ) {
+			return $post_menu;
+		}
+		// No menu. Check for a term menu.
+		$post_menu = $this->get_term_menu( get_the_ID() );
+		// No menu. Check for a parent page menu.
+		if ( is_page() && ! $post_menu ) {
+			$parent_ID = $this->get_parent_ID();
+			$post_menu = sixtenpresssimplemenus_get_menu( $parent_ID );
+		}
+		// Return the post menu if there is one, otherwise return what we started with.
+		return $post_menu ? $post_menu : $menu;
 	}
 
 	/**
@@ -92,9 +117,9 @@ class SixTenPressSimpleMenusOutput {
 		if ( ! is_page() ) {
 			return false;
 		}
-		/* Get an array of Ancestors and Parents if they exist */
+		// Get an array of Ancestors and Parents if they exist
 		$parents = array_reverse( get_post_ancestors( get_the_ID() ) );
-		/* Get the top Level page->ID count base 1, array base 0 so -1 */
+		// Get the top Level page->ID
 		return (array) $parents ? $parents[0] : get_the_ID();
 	}
 }
