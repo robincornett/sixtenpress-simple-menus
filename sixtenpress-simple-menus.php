@@ -1,13 +1,25 @@
 <?php
-/*
-Plugin Name: SixTen Press Simple Menus
-Plugin URI: https://robincornett.com/
-Description: SixTen Press Simple Menus is a fork of Genesis Simple Menus.
-Version: 0.1.0
-Author: Robin Cornett
-Author URI: https://robincornett.com/
-Text Domain: sixtenpress-simple-menus
-*/
+/**
+ * @package           SixTenPressSimpleMenus
+ * @author            Robin Cornett
+ * @link              https://github.com/robincornett/sixtenpress-simple-menus
+ * @copyright         2015-2016 Robin Cornett
+ * @license           GPL-2.0+
+ *
+ * @wordpress-plugin
+ * Plugin Name:       Six Ten Press Simple Menus
+ * Plugin URI:        https://github.com/robincornett/sixtenpress-simple-menus
+ * Description: SixTen Press Simple Menus is a fork of Genesis Simple Menus.
+ * Version:           0.2.0
+ * Author:            Robin Cornett
+ * Author URI:        https://robincornett.com/
+ * Text Domain:       scriptless-social-sharing
+ * License:           GPL-2.0+
+ * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
+ * Domain Path:       /languages
+ * GitHub Plugin URI: https://github.com/robincornett/sixtenpress-simple-menus
+ * GitHub Branch:     master
+ */
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {

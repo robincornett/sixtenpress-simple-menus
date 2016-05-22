@@ -4,7 +4,9 @@ This plugin works within the Genesis Framework, to allow users to dynamically ch
 
 ## Description
 
-This plugin is a fork of *Genesis Simple Menus*. This plugin goes a step or two farther than the original, as it allows a series of fallback secondary menus based on terms and post types (the original required that the menu be set for each and every post).
+This plugin is a fork of *Genesis Simple Menus*. This plugin goes a step or two farther than the original, as it allows a series of fallback secondary menus based on terms and post types (the original required that the menu be set for each and every post). The plugin also checks parent pages for custom menus, so a child page will inherit the parent page menu settings.
+
+Alternatively, you can also disable the inheritance function, at which point the plugin will behave as its predecessor does.
 
 ## Requirements
 * WordPress 4.4, tested up to 4.5
@@ -53,6 +55,9 @@ Because of term metadata and I didn't want to mess with ancient history compatib
 * Built by [Robin Cornett](http://robincornett.com/)
 
 ## Changelog
+
+### 0.2.0
+* Adds a check for parent page set menu
 
 ### 0.1.0
 * Initial fork and release on Github
