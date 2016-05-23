@@ -80,7 +80,7 @@ class SixTenPressSimpleMenusOutput {
 			return $post_menu;
 		}
 		// No menu. Check for a term menu.
-		$post_menu = $this->get_term_menu( get_the_ID() );
+		$post_menu = $this->get_term_menu( $menu );
 		// No menu. Check for a parent page menu.
 		if ( is_post_type_hierarchical( $post_type ) && ! $post_menu ) {
 			$parent_ID = $this->get_parent_ID();
@@ -103,6 +103,10 @@ class SixTenPressSimpleMenusOutput {
 		$args       = array( 'orderby' => 'count', 'order' => 'DESC' );
 		$terms      = wp_get_object_terms( get_the_ID(), $taxonomies, $args );
 
+		if ( ! $terms ) {
+			return $menu;
+		}
+
 		foreach ( $terms as $term ) {
 			$menu = sixtenpresssimplemenus_get_term_meta( $term, $this->meta_key );
 			if ( $menu ) {
@@ -110,7 +114,7 @@ class SixTenPressSimpleMenusOutput {
 			}
 		}
 
-		return (int) $menu;
+		return $menu;
 	}
 
 	/**
