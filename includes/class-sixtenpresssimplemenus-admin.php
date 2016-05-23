@@ -42,7 +42,7 @@ class SixTenPressSimpleMenusAdmin {
 					'side',
 					'low'
 				);
-				add_action( 'save_post', array( $this, 'save_post' ) );
+				add_action( 'save_post', array( $this, 'save_post' ), 10, 2 );
 			}
 		}
 	}
