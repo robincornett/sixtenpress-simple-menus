@@ -7,7 +7,7 @@
  * @license           GPL-2.0+
  *
  * @wordpress-plugin
- * Plugin Name:       Six Ten Press Simple Menus
+ * Plugin Name:       SixTen Press Simple Menus
  * Plugin URI:        https://github.com/robincornett/sixtenpress-simple-menus
  * Description: SixTen Press Simple Menus is a fork of Genesis Simple Menus.
  * Version:           0.2.0
