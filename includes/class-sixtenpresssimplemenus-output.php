@@ -57,6 +57,13 @@ class SixTenPressSimpleMenusOutput {
 			}
 		}
 
+		$postspage = get_option( 'page_for_posts' );
+		if ( is_home() && $postspage ) {
+			$post           = get_post( $postspage );
+			$postspage_menu = sixtenpresssimplemenus_get_menu( $post->ID );
+			$menu           = $postspage_menu ? $postspage_menu : $menu;
+		}
+
 		// Set the menu on a singular post/page.
 		if ( is_singular() ) {
 			$menu = $this->get_singular_menu( $menu, $post_type );
