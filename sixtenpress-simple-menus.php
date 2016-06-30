@@ -7,9 +7,9 @@
  * @license           GPL-2.0+
  *
  * @wordpress-plugin
- * Plugin Name:       SixTen Press Simple Menus
+ * Plugin Name:       Six/Ten Press Simple Menus
  * Plugin URI:        https://github.com/robincornett/sixtenpress-simple-menus
- * Description: SixTen Press Simple Menus is a fork of Genesis Simple Menus.
+ * Description: Six/Ten Press Simple Menus is a fork of Genesis Simple Menus.
  * Version:           0.2.0
  * Author:            Robin Cornett
  * Author URI:        https://robincornett.com/
@@ -35,6 +35,8 @@ function sixtenpresssimplemenus_require() {
 	$files = array(
 		'class-sixtenpresssimplemenus',
 		'class-sixtenpresssimplemenus-admin',
+		'class-sixtenpresssimplemenus-helper',
+		'class-sixtenpresssimplemenus-licensing',
 		'class-sixtenpresssimplemenus-output',
 		'class-sixtenpresssimplemenus-settings',
 		'helper-functions',
@@ -46,11 +48,13 @@ function sixtenpresssimplemenus_require() {
 sixtenpresssimplemenus_require();
 
 $sixtenpresssimplemenus_admin    = new SixTenPressSimpleMenusAdmin();
+$sixtenpresssimplemenus_licensing = new SixTenPressSimpleMenusLicensing();
 $sixtenpresssimplemenus_output   = new SixTenPressSimpleMenusOutput();
 $sixtenpresssimplemenus_settings = new SixTenPressSimpleMenuSettings();
 
 $sixtenpress_simplemenus = new SixTenPressSimpleMenus(
 	$sixtenpresssimplemenus_admin,
+	$sixtenpresssimplemenus_licensing,
 	$sixtenpresssimplemenus_output,
 	$sixtenpresssimplemenus_settings
 );

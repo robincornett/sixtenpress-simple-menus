@@ -14,6 +14,11 @@ class SixTenPressSimpleMenus {
 	protected $admin;
 
 	/**
+	 * @var $licensing SixTenPressSimpleMenusLicensing
+	 */
+	protected $licensing;
+
+	/**
 	 * The plugin output class.
 	 * @var $output SixTenPressSimpleMenusOutput
 	 */
@@ -30,10 +35,11 @@ class SixTenPressSimpleMenus {
 	 * @param $admin
 	 * @param $output
 	 */
-	function __construct( $admin, $output, $settings ) {
-		$this->admin    = $admin;
-		$this->output   = $output;
-		$this->settings = $settings;
+	function __construct( $admin, $licensing, $output, $settings ) {
+		$this->admin     = $admin;
+		$this->licensing = $licensing;
+		$this->output    = $output;
+		$this->settings  = $settings;
 	}
 
 
@@ -80,7 +86,7 @@ class SixTenPressSimpleMenus {
 	 */
 	public function error_message() {
 
-		$error = sprintf( __( 'Sorry, SixTen Press Simple Menus works only with the Genesis Framework. It has been deactivated.', 'sixtenpress-simple-menus' ) );
+		$error = sprintf( __( 'Sorry, Six/Ten Press Simple Menus works only with the Genesis Framework. It has been deactivated.', 'sixtenpress-simple-menus' ) );
 
 		if ( version_compare( PHP_VERSION, '5.3', '<' ) ) {
 			$error = $error . sprintf(

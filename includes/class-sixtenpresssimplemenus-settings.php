@@ -8,7 +8,7 @@
  * @link      http://robincornett.com
  * @copyright 2016 Robin Cornett Creative, LLC
  */
-class SixTenPressSimpleMenuSettings {
+class SixTenPressSimpleMenuSettings extends SixTenPressSimpleMenusHelper {
 
 	/**
 	 * Option registered by plugin.
@@ -143,44 +143,27 @@ class SixTenPressSimpleMenuSettings {
 	 * @since 0.1.0
 	 */
 	protected function register_sections() {
-
-		$sections['general'] = array(
-			'id'    => 'general',
-			'tab'   => 'simplemenus',
-			'title' => __( 'General Settings', 'sixtenpress-simple-menus' ),
+		
+		$sections = array(
+			'general' => array(
+				'id'    => 'general',
+				'tab'   => 'simplemenus',
+				'title' => __( 'General Settings', 'sixtenpress-simple-menus' ),
+			),
 		);
+		$post_types = array();
 		$this->post_types = $this->post_types();
 		if ( $this->post_types ) {
-
-			$sections['cpt'] = array(
-				'id'    => 'cpt',
-				'tab'   => 'simplemenus',
-				'title' => __( 'Menu Settings for Content Types', 'sixtenpress-simple-menus' ),
+			$post_types = array(
+				'cpt' => array(
+					'id'    => 'cpt',
+					'tab'   => 'simplemenus',
+					'title' => __( 'Menu Settings for Content Types', 'sixtenpress-simple-menus' ),
+				),
 			);
 		}
 
-		return $sections;
-	}
-
-	/**
-	 * Add the sections to the settings page.
-	 * @param $sections
-	 */
-	protected function add_sections( $sections ) {
-		foreach ( $sections as $section ) {
-			$register = $section['id'];
-			$page     = $this->page;
-			if ( class_exists( 'SixTenPress' ) ) {
-				$register = $this->page . '_' . $section['id'];
-				$page     = $this->page . '_' . $section['tab'];
-			}
-			add_settings_section(
-				$register,
-				$section['title'],
-				array( $this, $section['id'] . '_section_description' ),
-				$page
-			);
-		}
+		return array_merge( $sections, $post_types );
 	}
 
 	/**
@@ -222,30 +205,6 @@ class SixTenPressSimpleMenuSettings {
 		}
 
 		return $fields;
-	}
-
-	/**
-	 * Add the fields to the settings page.
-	 * @param $fields
-	 * @param $sections
-	 */
-	protected function add_fields( $fields, $sections ) {
-		foreach ( $fields as $field ) {
-			$page    = $this->page;
-			$section = $sections[ $field['section'] ]['id'];
-			if ( class_exists( 'SixTenPress' ) ) {
-				$page    = $this->page . '_' . $sections[ $field['section'] ]['tab']; // page
-				$section = $this->page . '_' . $sections[ $field['section'] ]['id']; // section
-			}
-			add_settings_field(
-				'[' . $field['id'] . ']',
-				sprintf( '<label for="%s">%s</label>', $field['id'], $field['title'] ),
-				array( $this, $field['callback'] ),
-				$page,
-				$section,
-				empty( $field['args'] ) ? array() : $field['args']
-			);
-		}
 	}
 
 	/**
