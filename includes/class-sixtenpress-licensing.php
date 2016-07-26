@@ -1,27 +1,27 @@
 <?php
 /**
+ * Generic licensing class to work with EDD Software Licensing.
  * @copyright 2016 Robin Cornett
  */
-
-class SixTenPressSimpleMenusLicensing extends SixTenPressSimpleMenusHelper {
+class SixTenPressLicensing extends SixTenPressSettings {
 
 	/**
 	 * Current plugin version
 	 * @var string $version
 	 */
-	public $version = '1.0.0';
+	public $version;
 
 	/**
 	 * Licensing page/setting
 	 * @var string $page
 	 */
-	protected $page = 'sixtenpress';
+	protected $page;
 
 	/**
 	 * Key for plugin setting base
 	 * @var string
 	 */
-	protected $key = 'sixtenpresssimplemenus';
+	protected $key;
 
 	/**
 	 * Array of fields for licensing
@@ -33,12 +33,12 @@ class SixTenPressSimpleMenusLicensing extends SixTenPressSimpleMenusHelper {
 	 * License key
 	 * @var $license
 	 */
-	protected $license = '';
+	protected $license;
 
 	/** License status
 	 * @var $status
 	 */
-	protected $status = false;
+	protected $status;
 
 	/**
 	 * License data for this site (expiration date, latest version)
@@ -50,30 +50,43 @@ class SixTenPressSimpleMenusLicensing extends SixTenPressSimpleMenusHelper {
 	 * Store URL for Easy Digital Downloads.
 	 * @var string
 	 */
-	protected $url = 'http://local.sandbox.dev';
+	protected $url;
 
 	/**
 	 * Plugin name for EDD.
 	 * @var string
 	 */
-	protected $name = 'Six/Ten Press Simple Menus';
+	protected $name;
 
 	/**
 	 * Plugin slug for license check.
 	 * @var string
 	 */
-	protected $slug = 'sixtenpress-simple-menus';
+	protected $slug;
 
 	/**
-	 * SixTenPress Licensing constructor.
+	 * The current plugin's basename.
+	 * @var $basename
 	 */
-	public function __construct() {
-		$this->license = get_option( $this->key . '_key', '' );
-		$this->status  = get_option( $this->key . '_status', false );
-		$this->data    = get_option( $this->key . '_data', false );
-		add_action( 'admin_init', array( $this, 'updater' ), 15 );
-//		add_action( 'sixtenpress_weekly_events', array( $this, 'weekly_license_check' ) );
-	}
+	protected $basename;
+
+	/**
+	 * The plugin author.
+	 * @var $author
+	 */
+	protected $author;
+
+	/**
+	 * Action for our custom nonce.
+	 * @var string $action
+	 */
+	protected $action = 'sixtenpress_save-settings';
+
+	/**
+	 * Custom nonce.
+	 * @var string $nonce
+	 */
+	protected $nonce = 'sixtenpress_nonce';
 
 	/**
 	 * Set up EDD licensing updates
@@ -86,11 +99,11 @@ class SixTenPressSimpleMenusLicensing extends SixTenPressSimpleMenusHelper {
 			include plugin_dir_path( __FILE__ ) . 'class-eddpluginupdater.php';
 		}
 
-		$edd_updater = new EDD_SL_Plugin_Updater( $this->url, SIXTENPRESSSIMPLEMENUS_BASENAME, array(
+		$edd_updater = new EDD_SL_Plugin_Updater( $this->url, $this->basename, array(
 			'version'   => $this->version,
 			'license'   => trim( $this->license ),
 			'item_name' => $this->name,
-			'author'    => 'Robin Cornett',
+			'author'    => $this->author,
 			'url'       => home_url(),
 		) );
 
@@ -98,64 +111,13 @@ class SixTenPressSimpleMenusLicensing extends SixTenPressSimpleMenusHelper {
 			return;
 		}
 
-		$sections     = $this->register_section();
-		$this->fields = $this->register_fields();
-		$this->register_settings();
-		if ( ! class_exists( 'SixTenPress' ) ) {
-			$this->page = $this->key;
-			$this->add_sections( $sections );
-		}
-		$this->add_fields( $this->fields, $sections );
 		$this->activate_license();
 		$this->deactivate_license();
 	}
 
 	/**
-	 * Register plugin license settings and fields
-	 * @since 1.4.0
-	 */
-	public function register_settings() {
-		$options_group = class_exists( 'SixTenPress' ) ? $this->page . 'licensing' : 'sixtenpresssimplemenus';
-		register_setting( $options_group, $this->key . '_key', array( $this, 'sanitize_license' ) );
-	}
-
-	/**
-	 * Register the licensing section.
-	 * @return array
-	 */
-	protected function register_section() {
-		return array(
-			'licensing' => array(
-				'id'    => 'licensing',
-				'tab'   => 'licensing',
-				'title' => __( 'License', 'sixtenpress-simple-menus' ),
-			),
-		);
-	}
-
-	/**
-	 * Register the license key field.
-	 * @return array
-	 */
-	protected function register_fields() {
-		return array(
-			array(
-				'id'       => $this->key . '_key',
-				'title'    => __( 'Simple Menus License Key', 'sixtenpress' ),
-				'callback' => 'do_license_key_field',
-				'section'  => 'licensing',
-				'args'     => array(
-					'setting' => $this->key . '_key',
-					'label'   => __( 'Enter your license key.', 'sixtenpress' ),
-				),
-			),
-		);
-	}
-
-	/**
 	 * License key input field
 	 * @param  array $args parameters to define field
-	 * @return input field
 	 *
 	 * @since 1.4.0
 	 */
@@ -166,7 +128,7 @@ class SixTenPressSimpleMenusLicensing extends SixTenPressSimpleMenusHelper {
 				esc_attr( $style )
 			);
 		}
-		printf( '<input type="text" class="regular-text" id="%1$s" name="%1$s" value="%2$s" />',
+		printf( '<input type="password" class="regular-text" id="%1$s" name="%1$s" value="%2$s" />',
 			esc_attr( $args['setting'] ),
 			esc_attr( $this->license )
 		);
@@ -176,7 +138,7 @@ class SixTenPressSimpleMenusLicensing extends SixTenPressSimpleMenusHelper {
 		if ( 'valid' === $this->status ) {
 			return;
 		}
-		if ( ! class_exists( 'SixTenPress' ) ) {
+		if ( ! $this->is_sixten_active() ) {
 			$this->add_activation_button();
 		}
 		printf( '<p class="description"><label for="%3$s[%1$s]">%2$s</label></p>', esc_attr( $args['setting'] ), esc_html( $args['label'] ), esc_attr( $this->page ) );
@@ -191,7 +153,7 @@ class SixTenPressSimpleMenusLicensing extends SixTenPressSimpleMenusHelper {
 			return;
 		}
 
-		$value = sprintf( __( 'Activate', 'sixtenpress-simple-menus' ) );
+		$value = sprintf( __( 'Activate', 'sixtenpress-featured-content' ) );
 		$name  = 'sixtenpress_activate';
 		$class = 'button-primary';
 		$this->print_button( $class, $name, $value );
@@ -206,7 +168,7 @@ class SixTenPressSimpleMenusLicensing extends SixTenPressSimpleMenusHelper {
 			return;
 		}
 
-		$value = sprintf( __( 'Deactivate', 'sixtenpress-simple-menus' ) );
+		$value = sprintf( __( 'Deactivate', 'sixtenpress-featured-content' ) );
 		$name  = $this->key . '_deactivate';
 		$class = 'button-secondary';
 		$this->print_button( $class, $name, $value );
@@ -215,7 +177,7 @@ class SixTenPressSimpleMenusLicensing extends SixTenPressSimpleMenusHelper {
 	/**
 	 * Sanitize license key
 	 * @param  string $new_value license key
-	 * @return license key
+	 * @return string license key
 	 *
 	 * @since 1.4.0
 	 */
@@ -247,15 +209,13 @@ class SixTenPressSimpleMenusLicensing extends SixTenPressSimpleMenusHelper {
 		// listen for our activate button to be clicked
 		if ( isset( $_POST['sixtenpress_activate'] ) ) {
 
-			$action = "{$this->page}_save-settings";
-			$nonce  = "{$this->page}_nonce";
 			// If the user doesn't have permission to save, then display an error message
-			if ( ! $this->user_can_save( $action, $nonce ) ) {
-				wp_die( esc_attr__( 'Something unexpected happened. Please try again.', 'sixtenpress-simple-menus' ) );
+			if ( ! $this->user_can_save( $this->action, $this->nonce ) ) {
+				wp_die( esc_attr__( 'Something unexpected happened. Please try again.', 'sixtenpress-featured-content' ) );
 			}
 
 			// run a quick security check
-			if ( ! check_admin_referer( $action, $nonce ) ) {
+			if ( ! check_admin_referer( $this->action, $this->nonce ) ) {
 				return; // get out if we didn't click the Activate button
 			}
 
@@ -285,7 +245,6 @@ class SixTenPressSimpleMenusLicensing extends SixTenPressSimpleMenusHelper {
 	/**
 	 * Deactivate license
 	 * @uses do_remote_request()
-	 * @return deletes license status key and deactivates with store
 	 *
 	 * @since 1.4.0
 	 */
@@ -294,15 +253,13 @@ class SixTenPressSimpleMenusLicensing extends SixTenPressSimpleMenusHelper {
 		// listen for our activate button to be clicked
 		if ( isset( $_POST[$this->key . '_deactivate'] ) ) {
 
-			$action = "{$this->page}_save-settings";
-			$nonce  = "{$this->page}_nonce";
 			// If the user doesn't have permission to save, then display an error message
-			if ( ! $this->user_can_save( $action, $nonce ) ) {
-				wp_die( esc_attr__( 'Something unexpected happened. Please try again.', 'sixtenpress' ) );
+			if ( ! $this->user_can_save( $this->action, $this->nonce ) ) {
+				wp_die( esc_attr__( 'Something unexpected happened. Please try again.', 'sixtenpress-featured-content' ) );
 			}
 
 			// run a quick security check
-			if ( ! check_admin_referer( $action, $nonce ) ) {
+			if ( ! check_admin_referer( $this->action, $this->nonce ) ) {
 				return; // get out if we didn't click the Activate button
 			}
 
@@ -335,7 +292,7 @@ class SixTenPressSimpleMenusLicensing extends SixTenPressSimpleMenusHelper {
 			return;
 		}
 
-		if ( ! empty( $_POST[$this->page . '_nonce'] ) ) {
+		if ( ! empty( $_POST[$this->nonce] ) ) {
 			return;
 		}
 
@@ -430,52 +387,7 @@ class SixTenPressSimpleMenusLicensing extends SixTenPressSimpleMenusHelper {
 	}
 
 	/**
-	 * Pick which error message to display. Based on whether license has never been activated, or is no longer valid, or has expired.
-	 * @param string $message
-	 *
-	 * @return string|void
-	 */
-	public function select_error_message( $message = '' ) {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-		if ( 'valid' === $this->status ) {
-			return;
-		}
-		$screen   = get_current_screen();
-		$haystack = array( 'settings_page_' . $this->page, 'update', 'update-core', 'plugins' );
-		$class    = 'notice-info';
-		if ( ! in_array( $screen->id, $haystack, true ) ) {
-			return;
-		}
-		$message .= '<p>' . sprintf( __( 'Sorry, there is an issue with your license for Six/Ten Press Sermons. Please check the <a href="%s">plugin license</a>.', 'sixtenpress' ), esc_url( admin_url( 'options-general.php?page=sixtenpress&tab=licensing' ) ) ) . '</p>';
-		if ( $this->license && ! in_array( $this->status, array( 'valid', false ), true ) ) {
-			$message .= '<p>';
-			if ( isset( $this->data['latest_version'] ) && $this->version < $this->data['latest_version'] ) {
-				$message .= sprintf( __( 'The latest version of Six/Ten Press Sermons is %s and you are running %s. ', 'sixtenpress' ), $this->data['latest_version'], $this->version );
-			}
-			if ( 'expired' === $this->status ) {
-				$class       = 'error';
-				$license     = get_option( $this->page . '_data' );
-				$date        = strtotime( $license['expires'] );
-				$pretty_date = $this->pretty_date( array( 'field' => $date ) );
-				$renew_url   = trailingslashit( $this->url ) . 'checkout/?edd_action=add_to_cart&download_id=3772&discount=PASTDUE15';
-				$message    .= sprintf( __( 'It looks like your license expired on %s. To continue receiving updates, <a href="%s">renew now and receive a discount</a>.', 'sixtenpress' ), $pretty_date, $renew_url );
-			} else {
-				$message .= __( 'If you\'re seeing this message and have recently migrated from another site, you should just need to reactivate your license.', 'sixtenpress' );
-			}
-			$message .= '</p>';
-		}
-		if ( empty( $this->license ) || false === $this->status ) {
-			$message = '<p>' . sprintf( __( 'Please make sure you <a href="%s">activate your Six/Ten Press Sermons license</a> in order to receive automatic updates and support.', 'sixtenpress' ), esc_url( admin_url( 'options-general.php?page=sixtenpress&tab=licensing' ) ) ) . '</p>';
-		}
-
-		$this->do_error_message( $message, $class );
-	}
-
-	/**
-	 * Error messages
-	 * @return error if license is empty or invalid
+	 * Print error messages.
 	 *
 	 * @since 1.4.0
 	 */

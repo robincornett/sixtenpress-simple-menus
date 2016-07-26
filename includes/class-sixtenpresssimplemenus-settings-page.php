@@ -8,7 +8,7 @@
  * @link      http://robincornett.com
  * @copyright 2016 Robin Cornett Creative, LLC
  */
-class SixTenPressSimpleMenuSettings extends SixTenPressSimpleMenusHelper {
+class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 
 	/**
 	 * Option registered by plugin.
@@ -26,7 +26,7 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSimpleMenusHelper {
 	 * Slug for settings page.
 	 * @var string $page
 	 */
-	protected $page;
+	protected $page = 'sixtenpress';
 
 	/**
 	 * Settings fields registered by plugin.
@@ -41,25 +41,35 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSimpleMenusHelper {
 	protected $tab = 'sixtenpresssimplemenus';
 
 	/**
-	 * Maybe add the submenu page under Settings.
+	 * Maybe add a new settings page.
 	 */
-	public function do_submenu_page() {
+	public function maybe_add_settings_page() {
+		if ( $this->is_sixten_active() ) {
+			$this->add_sixten();
+			return;
+		}
+		register_setting( $this->page, $this->page, array( $this, 'do_validation_things' ) );
 
-		$this->page    = 'sixtenpress';
+		add_options_page(
+			__( '6/10 Press Featured Content Settings', 'sixtenpress' ),
+			__( '6/10 Press Featured Content', 'sixtenpress' ),
+			'manage_options',
+			$this->page,
+			array( $this, 'do_settings_form' )
+		);
+
+		$this->page    = $this->tab;
 		$this->setting = $this->get_setting();
 		$sections      = $this->register_sections();
 		$this->fields  = $this->register_fields();
-		if ( ! class_exists( 'SixTenPress' ) ) {
-			$this->page = $this->tab;
-			add_options_page(
-				__( '6/10 Press Simple Menus Settings', 'sixtenpress-simple-menus' ),
-				__( '6/10 Press Simple Menus', 'sixtenpress-simple-menus' ),
-				'manage_options',
-				$this->page,
-				array( $this, 'do_settings_form' )
-			);
-		}
+		$this->add_sections( $sections );
+		$this->add_fields( $this->fields, $sections );
+	}
 
+	protected function add_sixten() {
+		$this->setting = $this->get_setting();
+		$sections      = $this->register_sections();
+		$this->fields  = $this->register_fields();
 		add_filter( 'sixtenpress_settings_tabs', array( $this, 'add_tab' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 

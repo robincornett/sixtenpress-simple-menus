@@ -35,10 +35,7 @@ function sixtenpresssimplemenus_require() {
 	$files = array(
 		'class-sixtenpresssimplemenus',
 		'class-sixtenpresssimplemenus-admin',
-		'class-sixtenpresssimplemenus-helper',
-		'class-sixtenpresssimplemenus-licensing',
 		'class-sixtenpresssimplemenus-output',
-		'class-sixtenpresssimplemenus-settings',
 		'helper-functions',
 	);
 	foreach ( $files as $file ) {
@@ -48,15 +45,11 @@ function sixtenpresssimplemenus_require() {
 sixtenpresssimplemenus_require();
 
 $sixtenpresssimplemenus_admin    = new SixTenPressSimpleMenusAdmin();
-$sixtenpresssimplemenus_licensing = new SixTenPressSimpleMenusLicensing();
 $sixtenpresssimplemenus_output   = new SixTenPressSimpleMenusOutput();
-$sixtenpresssimplemenus_settings = new SixTenPressSimpleMenuSettings();
 
 $sixtenpress_simplemenus = new SixTenPressSimpleMenus(
 	$sixtenpresssimplemenus_admin,
-	$sixtenpresssimplemenus_licensing,
-	$sixtenpresssimplemenus_output,
-	$sixtenpresssimplemenus_settings
+	$sixtenpresssimplemenus_output
 );
 
 // Run the plugin

@@ -35,11 +35,9 @@ class SixTenPressSimpleMenus {
 	 * @param $admin
 	 * @param $output
 	 */
-	function __construct( $admin, $licensing, $output, $settings ) {
-		$this->admin     = $admin;
-		$this->licensing = $licensing;
-		$this->output    = $output;
-		$this->settings  = $settings;
+	function __construct( $admin, $output ) {
+		$this->admin  = $admin;
+		$this->output = $output;
 	}
 
 
@@ -54,7 +52,7 @@ class SixTenPressSimpleMenus {
 		}
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 		add_action( 'init', array( $this, 'secondary_menus_supported' ) );
-
+		add_action( 'admin_menu', array( $this, 'load_settings_page' ) );
 	}
 
 	public function secondary_menus_supported() {
@@ -63,9 +61,27 @@ class SixTenPressSimpleMenus {
 		}
 		add_action( 'admin_menu', array( $this->admin, 'set_post_metaboxes' ) );
 		add_action( 'admin_menu', array( $this->admin, 'set_taxonomy_metaboxes' ) );
-		add_action( 'admin_menu', array( $this->settings, 'do_submenu_page' ) );
-		add_filter( 'sixtenpresssimplemenus_get_setting', array( $this->settings, 'get_setting' ) );
 		add_filter( 'theme_mod_nav_menu_locations', array( $this->output, 'replace_menu' ) );
+	}
+
+	public function load_settings_page() {
+		if ( ! class_exists( 'SixTenPressSettings' ) ) {
+			require plugin_dir_path( __FILE__ ) . 'class-sixtenpress-settings.php';
+		}
+		if ( ! class_exists( 'SixTenPressLicensing' ) ) {
+			require plugin_dir_path( __FILE__ ) . 'class-sixtenpress-licensing.php';
+		}
+		$files = array( 'licensing', 'page' );
+		foreach( $files as $file ) {
+			require plugin_dir_path( __FILE__ ) . 'class-sixtenpresssimplemenus-settings-' . $file .'.php';
+		}
+
+		$this->settings = new SixTenPressSimpleMenuSettings();
+		$licensing      = new SixTenPressSimpleMenusLicensing();
+		$this->settings->maybe_add_settings_page();
+		add_action( 'admin_menu', array( $this->settings, 'do_submenu_page' ) );
+		add_action( 'admin_init', array( $licensing, 'set_up_licensing' ), 25 );
+		add_filter( 'sixtenpresssimplemenus_get_setting', array( $this->settings, 'get_setting' ) );
 	}
 
 	/**
