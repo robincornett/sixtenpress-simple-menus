@@ -52,7 +52,7 @@ class SixTenPressSimpleMenus {
 		}
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
 		add_action( 'init', array( $this, 'secondary_menus_supported' ) );
-		add_action( 'admin_menu', array( $this, 'load_settings_page' ) );
+		add_action( 'plugins_loaded', array( $this, 'load_settings_page' ) );
 	}
 
 	public function secondary_menus_supported() {
@@ -78,8 +78,7 @@ class SixTenPressSimpleMenus {
 
 		$this->settings = new SixTenPressSimpleMenuSettings();
 		$licensing      = new SixTenPressSimpleMenusLicensing();
-		$this->settings->maybe_add_settings_page();
-		add_action( 'admin_menu', array( $this->settings, 'do_submenu_page' ) );
+		add_action( 'admin_menu', array( $this->settings, 'maybe_add_settings_page' ) );
 		add_action( 'admin_init', array( $licensing, 'set_up_licensing' ), 25 );
 		add_filter( 'sixtenpresssimplemenus_get_setting', array( $this->settings, 'get_setting' ) );
 	}
