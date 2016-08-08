@@ -1,6 +1,7 @@
 <?php
 /**
- * @copyright $year Robin Cornett
+ * @copyright 2016 Robin Cornett
+ * @package SixTenPress
  */
 class SixTenPressSettings {
 
@@ -209,8 +210,12 @@ class SixTenPressSettings {
 	 * @since 1.0.1
 	 */
 	public function do_number( $args ) {
-		$setting = isset( $args['key'] ) ? $this->setting[ $args['key'] ][ $args['setting'] ] : $this->setting[ $args['setting'] ];
-		$label   = isset( $args['key'] ) ? $args['key'] . '][' . $args['setting'] : $args['setting'];
+		$setting = isset( $this->setting[ $args['setting'] ] ) ? $this->setting[ $args['setting'] ] : 0;
+		$label   = $args['setting'];
+		if ( isset( $args['key'] ) ) {
+			$setting = isset( $this->setting[ $args['key'] ][ $args['setting'] ] ) ? $this->setting[ $args['key'] ][ $args['setting'] ] : 0;
+			$label   = "{$args['key']}][{$args['setting']}";
+		}
 		printf( '<label for="%5$s[%3$s]"><input type="number" step="%6$s" min="%1$s" max="%2$s" id="%5$s[%3$s]" name="%5$s[%3$s]" value="%4$s" class="small-text" />%7$s</label>',
 			$args['min'],
 			(int) $args['max'],
@@ -234,8 +239,8 @@ class SixTenPressSettings {
 		$array    = $this->get_select_setting( $args );
 		$setting  = $array['setting'];
 		$label    = $array['label'];
-		printf( '<label for="%s[%s]">', esc_attr( $this->page ), esc_attr( $label ) );
-		printf( '<select id="%1$s[%2$s]" name="%1$s[%2$s]">', esc_attr( $this->page ), esc_attr( $label ) );
+		printf( '<label for="%s[%s]">', esc_attr( $this->get_setting_name() ), esc_attr( $label ) );
+		printf( '<select id="%1$s[%2$s]" name="%1$s[%2$s]">', esc_attr( $this->get_setting_name() ), esc_attr( $label ) );
 		foreach ( (array) $options as $name => $key ) {
 			printf( '<option value="%s" %s>%s</option>', esc_attr( $name ), selected( $name, $setting, false ), esc_attr( $key ) );
 		}
@@ -266,12 +271,12 @@ class SixTenPressSettings {
 	public function do_checkbox_array( $args ) {
 		foreach ( $args['choices'] as $key => $label ) {
 			$setting = isset( $this->setting[ $args['setting'] ][ $key ] ) ? $this->setting[ $args['setting'] ][ $key ] : 0;
-			printf( '<input type="hidden" name="%s[%s][%s]" value="0" />', esc_attr( $this->page ), esc_attr( $args['setting'] ), esc_attr( $key ) );
+			printf( '<input type="hidden" name="%s[%s][%s]" value="0" />', esc_attr( $this->get_setting_name() ), esc_attr( $args['setting'] ), esc_attr( $key ) );
 			printf( '<label for="%4$s[%5$s][%1$s]" style="margin-right:12px;"><input type="checkbox" name="%4$s[%5$s][%1$s]" id="%4$s[%5$s][%1$s]" value="1"%2$s class="code"/>%3$s</label>',
 				esc_attr( $key ),
 				checked( 1, $setting, false ),
 				esc_html( $label ),
-				esc_attr( $this->page ),
+				esc_attr( $this->get_setting_name() ),
 				esc_attr( $args['setting'] )
 			);
 			echo isset( $args['clear'] ) && $args['clear'] ? '<br />' : '';
