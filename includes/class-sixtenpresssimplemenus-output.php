@@ -69,7 +69,7 @@ class SixTenPressSimpleMenusOutput {
 			$menu = $this->get_singular_menu( $menu, $post_type );
 		}
 
-		return $menu;
+		return apply_filters( 'sixtenpresssimplemenus_get_menu', $menu );
 	}
 
 	/**
@@ -90,8 +90,8 @@ class SixTenPressSimpleMenusOutput {
 		$post_menu = $this->get_term_menu( $menu );
 		// No menu. Check for a parent page menu.
 		if ( is_post_type_hierarchical( $post_type ) && ! $post_menu ) {
-			$parent_ID = $this->get_parent_ID();
-			$post_menu = sixtenpresssimplemenus_get_menu( $parent_ID );
+			$parent_id = $this->get_parent_id();
+			$post_menu = sixtenpresssimplemenus_get_menu( $parent_id );
 		}
 		// Return the post menu if there is one, otherwise return what we started with.
 		return $post_menu ? $post_menu : $menu;
@@ -128,7 +128,7 @@ class SixTenPressSimpleMenusOutput {
 	 * Get the parent post/page menu, if it exists.
 	 * @return false|int
 	 */
-	protected function get_parent_ID() {
+	protected function get_parent_id() {
 		// Get an array of Ancestors and Parents if they exist
 		$parents = array_reverse( get_post_ancestors( get_the_ID() ) );
 		// Get the top Level page->ID
