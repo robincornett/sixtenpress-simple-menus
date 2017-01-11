@@ -302,12 +302,13 @@ class SixTenPressLicensing extends SixTenPressSettings {
 			return;
 		}
 
-		if ( empty( $this->license ) ) {
+		$license = get_option( $this->page . '_key', '' );
+		if ( empty( $license ) ) {
 			delete_option( $this->key . '_status' );
 			return;
 		}
 
-		$license_data = $this->check_license();
+		$license_data = $this->check_license( $license );
 		$status       = 'invalid';
 		if ( $license_data ) {
 			$status = $license_data->license;
@@ -430,5 +431,19 @@ class SixTenPressLicensing extends SixTenPressSettings {
 		$date_format = isset( $args['date_format'] ) ? $args['date_format'] : get_option( 'date_format' );
 
 		return $before . date_i18n( $date_format, $args['field'] ) . $after;
+	}
+
+	/**
+	 * Boolean to trigger the default 6/10 press error message.
+	 * @param $error
+	 *
+	 * @return bool
+	 * @since 1.1.2
+	 */
+	public function sixtenpress_error_message( $error ) {
+		if ( 'valid' === $this->status ) {
+			return $error;
+		}
+		return true;
 	}
 }

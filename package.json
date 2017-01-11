@@ -1,0 +1,10 @@
+{
+  "name": "sixtenpress-simple-menus",
+  "version": "0.1.0",
+  "private": true,
+  "license": "GPL-2.0",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-zip": "^3.2.0"
+  }
+}
