@@ -44,28 +44,19 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 	 * Maybe add a new settings page.
 	 */
 	public function maybe_add_settings_page() {
-		if ( $this->is_sixten_active() ) {
-			$this->add_sixten();
-			return;
+		if ( ! $this->is_sixten_active() ) {
+			$this->page = $this->tab;
+			add_options_page(
+				__( '6/10 Press Simple Menus Settings', 'sixtenpress' ),
+				__( '6/10 Press Simple Menus', 'sixtenpress' ),
+				'manage_options',
+				$this->page,
+				array( $this, 'do_simple_settings_form' )
+			);
 		}
-		$this->page = $this->tab;
-		register_setting( $this->page, $this->page, array( $this, 'do_validation_things' ) );
 
-		add_options_page(
-			__( '6/10 Press Simple Menus Settings', 'sixtenpress' ),
-			__( '6/10 Press Simple Menus', 'sixtenpress' ),
-			'manage_options',
-			$this->page,
-			array( $this, 'do_settings_form' )
-		);
-		$this->setting = $this->get_setting();
-		$sections      = $this->register_sections();
-		$this->fields  = $this->register_fields();
-		$this->add_sections( $sections );
-		$this->add_fields( $this->fields, $sections );
-	}
-
-	protected function add_sixten() {
+		$this->nonce   = $this->page . '_nonce';
+		$this->action  = $this->page . '_save-settings';
 		$this->setting = $this->get_setting();
 		$sections      = $this->register_sections();
 		$this->fields  = $this->register_fields();
@@ -74,25 +65,6 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 
 		$this->add_sections( $sections );
 		$this->add_fields( $this->fields, $sections );
-	}
-
-	/**
-	 * Output the plugin settings form.
-	 *
-	 * @since 1.0.0
-	 */
-	public function do_settings_form() {
-
-		echo '<div class="wrap">';
-		echo '<h1>' . esc_attr( get_admin_page_title() ) . '</h1>';
-		echo '<form action="options.php" method="post">';
-		settings_fields( $this->page );
-		do_settings_sections( $this->page );
-		wp_nonce_field( "{$this->page}_save-settings", "{$this->page}_nonce", false );
-		submit_button();
-		echo '</form>';
-		echo '</div>';
-
 	}
 
 	/**
@@ -113,7 +85,8 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 	 * @since 1.0.0
 	 */
 	public function register_settings() {
-		register_setting( 'sixtenpresssimplemenus', 'sixtenpresssimplemenus', array( $this, 'do_validation_things' ) );
+		$method = method_exists( $this, 'sanitize' ) ? 'sanitize' : 'do_validation_things';
+		register_setting( $this->tab, $this->tab, array( $this, $method ) );
 	}
 
 	/**
@@ -123,6 +96,10 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 
 		$defaults = array(
 			'trickle' => 1,
+			'post'    => array(
+				'menu'    => '',
+				'support' => 1,
+			),
 		);
 		$setting = get_option( 'sixtenpresssimplemenus', $defaults );
 
@@ -134,16 +111,13 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 	 * @return array
 	 */
 	protected function post_types() {
+		$post_types[] = 'post';
 		$args         = array(
 			'public'      => true,
 			'_builtin'    => false,
 			'has_archive' => true,
 		);
-		$output       = 'names';
-		$post_types   = get_post_types( $args, $output );
-		$post_types[] = 'post';
-
-		return $post_types;
+		return array_merge( $post_types, get_post_types( $args, 'names' ) );
 	}
 
 	/**
@@ -227,8 +201,7 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 	 * Callback for the content types section description.
 	 */
 	public function cpt_section_description() {
-		$description = __( 'Set the default secondary navigation for each content type.', 'sixtenpress-simple-menus' );
-		printf( '<p>%s</p>', wp_kses_post( $description ) );
+		return __( 'Set the default secondary navigation for each content type.', 'sixtenpress-simple-menus' );
 	}
 
 	/**
@@ -301,6 +274,7 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 					break;
 			}
 		}
+		$new_value['post']['support'] = 1;
 		foreach ( $this->post_types as $post_type ) {
 			$new_value[ $post_type ]['menu']    = (int) $new_value[ $post_type ]['menu'];
 			$new_value[ $post_type ]['support'] = $this->one_zero( $new_value[ $post_type ]['support'] );
