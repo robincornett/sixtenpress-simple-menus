@@ -48,17 +48,16 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 			$this->add_sixten();
 			return;
 		}
+		$this->page = $this->tab;
 		register_setting( $this->page, $this->page, array( $this, 'do_validation_things' ) );
 
 		add_options_page(
-			__( '6/10 Press Featured Content Settings', 'sixtenpress' ),
-			__( '6/10 Press Featured Content', 'sixtenpress' ),
+			__( '6/10 Press Simple Menus Settings', 'sixtenpress' ),
+			__( '6/10 Press Simple Menus', 'sixtenpress' ),
 			'manage_options',
 			$this->page,
 			array( $this, 'do_settings_form' )
 		);
-
-		$this->page    = $this->tab;
 		$this->setting = $this->get_setting();
 		$sections      = $this->register_sections();
 		$this->fields  = $this->register_fields();
