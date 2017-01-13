@@ -15,6 +15,9 @@ class SixTenPressSimpleMenusOutput {
 	 * Replace the menu selected in the WordPress Menu settings with the custom one for this request
 	 */
 	public function replace_menu( $mods ) {
+		if ( is_admin() ) {
+			return $mods;
+		}
 
 		$menu = $this->get_menu();
 		if ( $menu ) {
