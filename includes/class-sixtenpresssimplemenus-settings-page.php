@@ -95,8 +95,9 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 	public function get_setting() {
 
 		$defaults = array(
-			'trickle' => 1,
-			'post'    => array(
+			'trickle'  => 1,
+			'location' => 'secondary',
+			'post'     => array(
 				'menu'    => '',
 				'support' => 1,
 			),
@@ -164,11 +165,21 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 			array(
 				'id'       => 'trickle',
 				'title'    => __( 'Use Content Type/Term Menus', 'sixtenpress-simple-menus' ),
-				'callback' => 'do_checkbox',
+				'type'     => 'checkbox',
 				'section'  => 'general',
 				'args'     => array(
 					'setting' => 'trickle',
 					'label'   => __( 'Use content type/term menus on single posts if no menu is set', 'sixtenpress-simple-menus' ),
+				),
+			),
+			array(
+				'id'       => 'location',
+				'title'    => __( 'Menu to Modify', 'sixtenpress-simple-menus' ),
+				'type'     => 'select',
+				'section'  => 'general',
+				'args'     => array(
+					'label'   => __( 'Select a registered menu location to modify.', 'sixtenpress-simple-menus' ),
+					'choices' => $this->get_locations(),
 				),
 			),
 		);
@@ -178,7 +189,7 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 				$object   = get_post_type_object( $post_type );
 				$label    = $object->labels->name;
 				$fields[] = array(
-					'id'       => '[post_types]' . esc_attr( $post_type ),
+					'id'       => esc_attr( $post_type ),
 					'title'    => esc_attr( $label ),
 					'callback' => 'set_post_type_options',
 					'section'  => 'cpt',
@@ -201,7 +212,7 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 	 * Callback for the content types section description.
 	 */
 	public function cpt_section_description() {
-		return __( 'Set the default secondary navigation for each content type.', 'sixtenpress-simple-menus' );
+		return sprintf( __( 'Set the default %s navigation for each content type.', 'sixtenpress-simple-menus' ), $this->setting['location'] );
 	}
 
 	/**
@@ -233,12 +244,25 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 	 * @return mixed
 	 */
 	protected function pick_menus() {
-		$options[''] = __( 'Default Secondary Menu', 'sixtenpress-simple-menus' );
+		$options[''] = sprintf( __( 'Default %s Menu', 'sixtenpress-simple-menus' ), ucfirst( $this->setting['location'] ) );
 		$menus       = wp_get_nav_menus( array( 'orderby' => 'name' ) );
 		foreach ( $menus as $menu ) {
 			$options[ $menu->term_id ] = $menu->name;
 		}
 		return $options;
+	}
+
+	/**
+	 * Get the site's registered navigation locations.
+	 * @return array
+	 */
+	protected function get_locations() {
+		$locations = get_registered_nav_menus();
+		$output    = array();
+		foreach ( $locations as $key => $label ) {
+			$output[ $key ] = $label;
+		}
+		return $output;
 	}
 
 	/**

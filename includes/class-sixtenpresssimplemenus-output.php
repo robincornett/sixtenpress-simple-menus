@@ -21,7 +21,8 @@ class SixTenPressSimpleMenusOutput {
 
 		$menu = $this->get_menu();
 		if ( $menu ) {
-			$mods['secondary'] = (int) $menu;
+			$setting = sixtenpresssimplemenus_get_setting();
+			$mods[ $setting['location'] ] = (int) $menu;
 		}
 
 		return $mods;

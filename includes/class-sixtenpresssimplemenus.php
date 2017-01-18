@@ -40,30 +40,20 @@ class SixTenPressSimpleMenus {
 		$this->output = $output;
 	}
 
-
 	/**
 	 * Add base hooks into WordPress
 	 */
 	public function run() {
-
-		if ( 'genesis' !== basename( get_template_directory() ) ) {
-			add_action( 'admin_init', array( $this, 'deactivate' ) );
-			return;
-		}
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
-		add_action( 'init', array( $this, 'secondary_menus_supported' ) );
-		add_action( 'plugins_loaded', array( $this, 'load_settings_page' ) );
-	}
-
-	public function secondary_menus_supported() {
-		if ( ! genesis_nav_menu_supported( 'secondary' ) ) {
-			return;
-		}
 		add_action( 'admin_menu', array( $this->admin, 'set_post_metaboxes' ) );
 		add_action( 'admin_menu', array( $this->admin, 'set_taxonomy_metaboxes' ) );
 		add_filter( 'theme_mod_nav_menu_locations', array( $this->output, 'replace_menu' ) );
+		add_action( 'plugins_loaded', array( $this, 'load_settings_page' ) );
 	}
 
+	/**
+	 *
+	 */
 	public function load_settings_page() {
 		if ( ! class_exists( 'SixTenPressSettings' ) ) {
 			include_once plugin_dir_path( __FILE__ ) . '/common/class-sixtenpress-settings.php';

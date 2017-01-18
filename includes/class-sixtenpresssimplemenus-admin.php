@@ -24,19 +24,25 @@ class SixTenPressSimpleMenusAdmin {
 	 */
 	protected $taxonomies = null;
 
+	/**
+	 * The plugin setting.
+	 * @var
+	 */
+	protected $setting;
+
 	/*
 	 * Add the post metaboxes to the supported post types
 	 */
 	public function set_post_metaboxes() {
 
 		foreach ( (array) get_post_types( array( 'public' => true ) ) as $post_type ) {
-			$setting = sixtenpresssimplemenus_get_setting();
-			if ( isset( $setting[ $post_type ]['support'] ) && $setting[ $post_type ]['support'] ) {
+			$this->setting = sixtenpresssimplemenus_get_setting();
+			if ( isset( $this->setting[ $post_type ]['support'] ) && $this->setting[ $post_type ]['support'] ) {
 				add_post_type_support( $post_type, 'sixtenpress-simple-menus' );
 			}
 			if ( in_array( $post_type, array( 'post', 'page' ), true ) || post_type_supports( $post_type, 'sixtenpress-simple-menus' ) || post_type_supports( $post_type, 'genesis-simple-menus' ) ) {
 				add_meta_box( $this->handle,
-					__( 'Secondary Navigation', 'sixtenpress-simple-menus' ),
+					sprintf( __( '%s Navigation', 'sixtenpress-simple-menus' ), ucfirst( $this->setting['location'] ) ),
 					array( $this, 'do_post_metabox' ),
 					$post_type,
 					'side',
@@ -53,7 +59,7 @@ class SixTenPressSimpleMenusAdmin {
 	public function set_taxonomy_metaboxes() {
 
 		$_taxonomies      = get_taxonomies( array( 'show_ui' => true, 'public' => true ) );
-		$this->taxonomies = apply_filters( 'genesis_simple_menus_taxonomies', array_keys( $_taxonomies ) );
+		$this->taxonomies = apply_filters( 'sixtenpresssimplemenus_taxonomies', array_keys( $_taxonomies ) );
 
 		if ( empty( $this->taxonomies ) || ! is_array( $this->taxonomies ) ) {
 			return;
@@ -85,9 +91,10 @@ class SixTenPressSimpleMenusAdmin {
 		$menu = sixtenpresssimplemenus_get_term_meta( $term, $this->meta_key );
 
 		echo '<tr class="form-field">';
-		printf( '<th scope="row" valign="top"><label for="%s">%s</label></th>',
+		printf( '<th scope="row" valign="top"><label for="%s">%s %s</label></th>',
 			esc_attr( $this->meta_key ),
-			esc_attr__( 'Secondary Navigation', 'sixtenpress-simple-menus' )
+			esc_attr( ucfirst( $this->setting['location'] ) ),
+			esc_attr__( 'Navigation', 'sixtenpress-simple-menus' )
 		);
 		echo '<td>';
 			$this->print_menu_select( $this->meta_key, $menu );
@@ -104,7 +111,7 @@ class SixTenPressSimpleMenusAdmin {
 
 		printf( '<label for="%s">', esc_attr( $field_name ) );
 		printf( '<select name="%1$s" id="%1$s">', $field_name );
-			printf ( '<option value="">%s</option>', __( 'Default Secondary Navigation', 'sixtenpress-simple-menus' ) );
+			printf ( '<option value="">%s</option>', sprintf( __( 'Default %s Navigation', 'sixtenpress-simple-menus' ), ucfirst( $this->setting['location'] ) ) );
 			$menus = wp_get_nav_menus( array( 'orderby' => 'name' ) );
 			foreach ( $menus as $menu ) {
 				printf( '<option value="%d" %s>%s</option>', $menu->term_id, selected( $menu->term_id, $selected, false ), esc_html( $menu->name ) );
