@@ -9,11 +9,11 @@
  * @wordpress-plugin
  * Plugin Name:       Six/Ten Press Simple Menus
  * Plugin URI:        https://github.com/robincornett/sixtenpress-simple-menus
- * Description: Six/Ten Press Simple Menus is a fork of Genesis Simple Menus.
- * Version:           0.2.0
+ * Description:       Six/Ten Press Simple Menus is a fork of Genesis Simple Menus.
+ * Version:           0.3.0
  * Author:            Robin Cornett
  * Author URI:        https://robincornett.com/
- * Text Domain:       scriptless-social-sharing
+ * Text Domain:       sixtenpress-simple-menus
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
  * Domain Path:       /languages

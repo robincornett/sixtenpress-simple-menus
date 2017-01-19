@@ -1,6 +1,6 @@
 # 6/10 Press Simple Menus
 
-This plugin works within the Genesis Framework, to allow users to dynamically change their secondary menu throughout their site.
+This plugin allows users to dynamically change a specific menu location throughout their site.
 
 ## Description
 
@@ -8,9 +8,10 @@ This plugin is a fork of *Genesis Simple Menus*. This plugin goes a step or two 
 
 Alternatively, you can also disable the inheritance function, at which point the plugin will behave as its predecessor does.
 
+**Update:** as of version 0.3.0, Six/Ten Press Simple Menus will work with any theme, not just Genesis child themes. Any registered navigation menu location can be selected for this plugin to modify.
+
 ## Requirements
-* WordPress 4.4, tested up to 4.5
-* the Genesis Framework
+* WordPress 4.4, tested up to 4.7
 
 ## Installation
 
@@ -52,9 +53,13 @@ Because of term metadata and I didn't want to mess with ancient history compatib
 
 ## Credits
 
-* Built by [Robin Cornett](http://robincornett.com/)
+* Built by [Robin Cornett](https://robincornett.com/)
 
 ## Changelog
+
+### 0.3.0
+* Removes Genesis Framework dependency
+* Updates settings files
 
 ### 0.2.0
 * Adds a check for parent page set menu

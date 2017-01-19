@@ -1,16 +1,13 @@
 <?php
 
-// uncomment this line for testing
-//set_site_transient( 'update_plugins', null );
-
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 /**
  * Allows plugins to use their own update API.
  *
- * @author Pippin Williamson
- * @version 1.6.7
+ * @author Easy Digital Downloads
+ * @version 1.6.9
  */
 class EDD_SL_Plugin_Updater {
 
@@ -101,7 +98,7 @@ class EDD_SL_Plugin_Updater {
 		$version_info = $this->get_cached_version_info();
 
 		if ( false === $version_info ) {
-			$version_info = $this->api_request( 'plugin_latest_version', array( 'slug' => $this->slug ) );
+			$version_info = $this->api_request( 'plugin_latest_version', array( 'slug' => $this->slug, 'beta' => ! empty( $this->api_data['beta'] ) ) );
 
 			$this->set_version_info_cache( $version_info );
 
@@ -159,7 +156,7 @@ class EDD_SL_Plugin_Updater {
 			$version_info = $this->get_cached_version_info();
 
 			if ( false === $version_info ) {
-				$version_info = $this->api_request( 'plugin_latest_version', array( 'slug' => $this->slug ) );
+				$version_info = $this->api_request( 'plugin_latest_version', array( 'slug' => $this->slug, 'beta' => ! empty( $this->api_data['beta'] ) ) );
 
 				$this->set_version_info_cache( $version_info );
 			}
@@ -253,7 +250,7 @@ class EDD_SL_Plugin_Updater {
 			'slug'   => $this->slug,
 			'is_ssl' => is_ssl(),
 			'fields' => array(
-				'banners' => false, // These will be supported soon hopefully
+				'banners' => array(),
 				'reviews' => false
 			)
 		);
@@ -275,6 +272,8 @@ class EDD_SL_Plugin_Updater {
 				$_data = $api_response;
 			}
 
+		} else {
+			$_data = $edd_api_request_transient;
 		}
 
 		return $_data;
@@ -325,10 +324,11 @@ class EDD_SL_Plugin_Updater {
 			'license'    => ! empty( $data['license'] ) ? $data['license'] : '',
 			'item_name'  => isset( $data['item_name'] ) ? $data['item_name'] : false,
 			'item_id'    => isset( $data['item_id'] ) ? $data['item_id'] : false,
+			'version'    => isset( $data['version'] ) ? $data['version'] : false,
 			'slug'       => $data['slug'],
 			'author'     => $data['author'],
 			'url'        => home_url(),
-			'beta'       => isset( $data['beta'] ) ? $data['beta'] : false,
+			'beta'       => ! empty( $data['beta'] ),
 		);
 
 		$request = wp_remote_post( $this->api_url, array( 'timeout' => 15, 'sslverify' => false, 'body' => $api_params ) );
@@ -341,6 +341,16 @@ class EDD_SL_Plugin_Updater {
 			$request->sections = maybe_unserialize( $request->sections );
 		} else {
 			$request = false;
+		}
+
+		if ( $request && isset( $request->banners ) ) {
+			$request->banners = maybe_unserialize( $request->banners );
+		}
+
+		if( ! empty( $request ) ) {
+			foreach( $request->sections as $key => $section ) {
+				$request->$key = (array) $section;
+			}
 		}
 
 		return $request;
@@ -378,7 +388,8 @@ class EDD_SL_Plugin_Updater {
 				'item_id'    => isset( $data['item_id'] ) ? $data['item_id'] : false,
 				'slug'       => $_REQUEST['slug'],
 				'author'     => $data['author'],
-				'url'        => home_url()
+				'url'        => home_url(),
+				'beta'       => ! empty( $data['beta'] )
 			);
 
 			$request = wp_remote_post( $this->api_url, array( 'timeout' => 15, 'sslverify' => false, 'body' => $api_params ) );
@@ -387,10 +398,17 @@ class EDD_SL_Plugin_Updater {
 				$version_info = json_decode( wp_remote_retrieve_body( $request ) );
 			}
 
+
 			if ( ! empty( $version_info ) && isset( $version_info->sections ) ) {
 				$version_info->sections = maybe_unserialize( $version_info->sections );
 			} else {
 				$version_info = false;
+			}
+
+			if( ! empty( $version_info ) ) {
+				foreach( $version_info->sections as $key => $section ) {
+					$version_info->$key = (array) $section;
+				}
 			}
 
 			$this->set_version_info_cache( $version_info, $cache_key );
