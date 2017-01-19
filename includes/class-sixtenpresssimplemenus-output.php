@@ -22,7 +22,7 @@ class SixTenPressSimpleMenusOutput {
 		$menu = $this->get_menu();
 		if ( $menu ) {
 			$setting = sixtenpresssimplemenus_get_setting();
-			$mods[ $setting['location'] ] = (int) $menu;
+			$mods[ $setting['nav_location'] ] = (int) $menu;
 		}
 
 		return $mods;

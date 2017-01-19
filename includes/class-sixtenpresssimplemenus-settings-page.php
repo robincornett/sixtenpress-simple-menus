@@ -95,9 +95,9 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 	public function get_setting() {
 
 		$defaults = array(
-			'trickle'  => 1,
-			'location' => 'secondary',
-			'post'     => array(
+			'trickle'      => 1,
+			'nav_location' => 'secondary',
+			'post'         => array(
 				'menu'    => '',
 				'support' => 1,
 			),
@@ -173,7 +173,7 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 				),
 			),
 			array(
-				'id'       => 'location',
+				'id'       => 'nav_location',
 				'title'    => __( 'Menu to Modify', 'sixtenpress-simple-menus' ),
 				'type'     => 'select',
 				'section'  => 'general',
@@ -212,7 +212,7 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 	 * Callback for the content types section description.
 	 */
 	public function cpt_section_description() {
-		return sprintf( __( 'Set the default %s navigation for each content type.', 'sixtenpress-simple-menus' ), $this->setting['location'] );
+		return sprintf( __( 'Set the default %s navigation for each content type.', 'sixtenpress-simple-menus' ), $this->setting['nav_location'] );
 	}
 
 	/**
@@ -244,7 +244,7 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 	 * @return mixed
 	 */
 	protected function pick_menus() {
-		$options[''] = sprintf( __( 'Default %s Menu', 'sixtenpress-simple-menus' ), ucfirst( $this->setting['location'] ) );
+		$options[''] = sprintf( __( 'Default %s Menu', 'sixtenpress-simple-menus' ), ucfirst( $this->setting['nav_location'] ) );
 		$menus       = wp_get_nav_menus( array( 'orderby' => 'name' ) );
 		foreach ( $menus as $menu ) {
 			$options[ $menu->term_id ] = $menu->name;

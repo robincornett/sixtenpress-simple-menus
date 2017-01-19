@@ -42,7 +42,7 @@ class SixTenPressSimpleMenusAdmin {
 			}
 			if ( in_array( $post_type, array( 'post', 'page' ), true ) || post_type_supports( $post_type, 'sixtenpress-simple-menus' ) || post_type_supports( $post_type, 'genesis-simple-menus' ) ) {
 				add_meta_box( $this->handle,
-					sprintf( __( '%s Navigation', 'sixtenpress-simple-menus' ), ucfirst( $this->setting['location'] ) ),
+					sprintf( __( '%s Navigation', 'sixtenpress-simple-menus' ), ucfirst( $this->setting['nav_location'] ) ),
 					array( $this, 'do_post_metabox' ),
 					$post_type,
 					'side',
@@ -93,7 +93,7 @@ class SixTenPressSimpleMenusAdmin {
 		echo '<tr class="form-field">';
 		printf( '<th scope="row" valign="top"><label for="%s">%s %s</label></th>',
 			esc_attr( $this->meta_key ),
-			esc_attr( ucfirst( $this->setting['location'] ) ),
+			esc_attr( ucfirst( $this->setting['nav_location'] ) ),
 			esc_attr__( 'Navigation', 'sixtenpress-simple-menus' )
 		);
 		echo '<td>';
@@ -111,7 +111,7 @@ class SixTenPressSimpleMenusAdmin {
 
 		printf( '<label for="%s">', esc_attr( $field_name ) );
 		printf( '<select name="%1$s" id="%1$s">', $field_name );
-			printf ( '<option value="">%s</option>', sprintf( __( 'Default %s Navigation', 'sixtenpress-simple-menus' ), ucfirst( $this->setting['location'] ) ) );
+			printf ( '<option value="">%s</option>', sprintf( __( 'Default %s Navigation', 'sixtenpress-simple-menus' ), ucfirst( $this->setting['nav_location'] ) ) );
 			$menus = wp_get_nav_menus( array( 'orderby' => 'name' ) );
 			foreach ( $menus as $menu ) {
 				printf( '<option value="%d" %s>%s</option>', $menu->term_id, selected( $menu->term_id, $selected, false ), esc_html( $menu->name ) );
