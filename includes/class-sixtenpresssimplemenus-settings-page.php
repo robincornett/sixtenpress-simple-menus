@@ -166,6 +166,7 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 				'id'       => 'trickle',
 				'title'    => __( 'Use Content Type/Term Menus', 'sixtenpress-simple-menus' ),
 				'type'     => 'checkbox',
+				'callback' => 'do_checkbox',
 				'section'  => 'general',
 				'args'     => array(
 					'setting' => 'trickle',
@@ -176,10 +177,13 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 				'id'       => 'nav_location',
 				'title'    => __( 'Menu to Modify', 'sixtenpress-simple-menus' ),
 				'type'     => 'select',
+				'callback' => 'do_select',
 				'section'  => 'general',
 				'args'     => array(
 					'label'   => __( 'Select a registered menu location to modify.', 'sixtenpress-simple-menus' ),
-					'choices' => $this->get_locations(),
+					'choices' => $this->pick_locations(),
+					'options' => 'locations',
+				    'setting' => 'nav_location',
 				),
 			),
 		);
@@ -256,7 +260,7 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 	 * Get the site's registered navigation locations.
 	 * @return array
 	 */
-	protected function get_locations() {
+	protected function pick_locations() {
 		$locations = get_registered_nav_menus();
 		$output    = array();
 		foreach ( $locations as $key => $label ) {
