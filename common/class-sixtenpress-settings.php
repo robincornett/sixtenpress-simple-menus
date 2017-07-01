@@ -21,7 +21,7 @@ class SixTenPressSettings {
 	 * The settings fields.
 	 * @var $fields
 	 */
-	protected $fields;
+	protected $fields = array();
 
 	/**
 	 * The settings page tab, if it exists.
@@ -47,7 +47,7 @@ class SixTenPressSettings {
 	/**
 	 * @var string
 	 */
-	protected $version = '1.2.0';
+	protected $version = '1.5.0';
 
 	/**
 	 * Check if 6/10 Press is active.
@@ -63,7 +63,16 @@ class SixTenPressSettings {
 	 * @since 1.0.0
 	 */
 	protected function get_active_tab() {
-		return isset( $_GET['tab'] ) ? $_GET['tab'] : 'main';
+		$tab = filter_input( INPUT_GET, 'tab', FILTER_SANITIZE_STRING );
+		return $tab ? $tab : 'main';
+	}
+
+	/**
+	 * Generic function to register a setting.
+	 */
+	public function register() {
+		$setting = $this->get_setting_name();
+		register_setting( $setting, $setting, array( $this, 'sanitize' ) );
 	}
 
 	/**
@@ -157,6 +166,7 @@ class SixTenPressSettings {
 		} elseif ( method_exists( $this, $args['callback'] ) ) {
 			$this->{$args['callback']}( $args );
 		}
+		$this->do_description( $args );
 	}
 
 	/**
@@ -207,9 +217,9 @@ class SixTenPressSettings {
 	public function render_buttons( $id, $args ) {
 		$id = $id ? (int) $id : '';
 		$this->data[ $args['id'] ] = $this->get_localization_data( $args );
-		printf( '<input type="hidden" class="upload-file-id" id="%1$s" name="%1$s" value="%2$s" />', esc_attr( $this->page . '[' . $args['id'] . ']' ), esc_attr( $id ) );
+		printf( '<input type="hidden" class="upload-file-id" id="%1$s" name="%1$s" value="%2$s" />', esc_attr( $this->get_setting_name() . '[' . $args['id'] . ']' ), esc_attr( $id ) );
 		printf( '<input id="%1$s" type="button" class="upload-file button-secondary %2$s" value="%3$s" />',
-			esc_attr( $this->page . '[' . $args['id'] . ']' ),
+			esc_attr( $this->get_setting_name() . '[' . $args['id'] . ']' ),
 			esc_attr( $args['id'] ),
 			esc_attr__( 'Select Image', 'sixtenpress' )
 		);
@@ -234,6 +244,33 @@ class SixTenPressSettings {
 		$preview = wp_get_attachment_image_src( (int) $id, 'medium' );
 		$image   = sprintf( '<div class="upload-file-preview"><img src="%s" style="max-width:320px;" /></div>', $preview[0] );
 		return $image;
+	}
+
+	/**
+	 * Custom callback for a multidimensional image size setting.
+	 *
+	 * @param $args
+	 */
+	public function do_image_size( $args ) {
+		$settings = array(
+			array(
+				'key'     => $args['id'],
+				'setting' => 'width',
+				'min'     => 100,
+				'max'     => 2000,
+				'value'   => __( ' width', 'leaven' ) . ' ',
+			),
+			array(
+				'key'     => $args['id'],
+				'setting' => 'height',
+				'min'     => 100,
+				'max'     => 2000,
+				'value'   => __( ' height', 'leaven' ) . ' ',
+			),
+		);
+		foreach ( $settings as $setting ) {
+			$this->do_number( $setting );
+		}
 	}
 
 	/**
@@ -349,22 +386,68 @@ class SixTenPressSettings {
 	 * @return array
 	 */
 	protected function get_setting() {
-		return get_option( $this->page, array() );
+		return get_option( $this->tab, array() );
+	}
+
+	/**
+	 * Default method for getting fields. Should be overridden.
+	 * @return array
+	 */
+	protected function register_fields() {
+		return $this->fields;
 	}
 
 	/**
 	 * Generic callback to display a field description.
-	 * @param  string $args setting name used to identify description callback
+	 * @param  array $args setting name used to identify description callback
 	 *
 	 * @since 1.0.0
 	 */
 	protected function do_description( $args ) {
-		$function = $args . '_description';
-		if ( ! method_exists( $this, $function ) ) {
-			return;
+		$description = isset( $args['description'] ) && $args['description'] ? $args['description'] : '';
+		$function    = $args['id'] . '_description';
+		if ( ! $description && method_exists( $this, $function ) ) {
+			$description = $this->$function();
 		}
-		$description = $this->$function();
 		printf( '<p class="description">%s</p>', wp_kses_post( $description ) );
+	}
+
+	/**
+	 * Helper function to get a list of posts.
+	 * @param $post_type
+	 * @param string $term
+	 * @param string $taxonomy
+	 *
+	 * @return array
+	 */
+	protected function get_post_list( $post_type, $term = '', $taxonomy = '' ) {
+		$options[''] = __( 'None', 'sixtenpress' );
+		if ( ! post_type_exists( $post_type ) ) {
+			return $options;
+		}
+		$args  = array(
+			'post_type'      => $post_type,
+			'posts_per_page' => 100,
+			'orderby'        => 'title',
+			'order'          => 'ASC',
+		);
+		if ( $term && $taxonomy && term_exists( $term, $taxonomy ) ) {
+			$args = array_merge( $args, array(
+				'tax_query' => array(
+					array(
+						'taxonomy' => $taxonomy,
+						'field'    => 'term_id',
+						'terms'    => $term,
+					),
+				),
+			) );
+		}
+		$posts = get_posts( $args );
+		foreach ( $posts as $post ) {
+			$options[ $post->ID ] = get_the_title( $post );
+		}
+
+		return $options;
 	}
 
 	/**
@@ -414,14 +497,7 @@ class SixTenPressSettings {
 	 * Enqueue the color picker script.
 	 */
 	public function enqueue_color_picker() {
-		wp_enqueue_style( 'wp-color-picker' );
-		if ( function_exists( 'wp_add_inline_script' ) ) {
-			wp_enqueue_script( 'wp-color-picker' );
-			$code = '( function( $ ) { \'use strict\'; $( function() { $( \'.color-field\' ).wpColorPicker(); }); })( jQuery );';
-			wp_add_inline_script( 'wp-color-picker', $code );
-		} else {
-			wp_enqueue_script( 'sixtenpress-color-picker', plugins_url( '/js/color-picker.js', __FILE__ ), array( 'wp-color-picker' ), $this->version, true );
-		}
+		add_filter( 'sixtenpress_admin_color_picker', '__return_true' );
 	}
 
 	/**
@@ -440,7 +516,7 @@ class SixTenPressSettings {
 		check_admin_referer( $this->action, $this->nonce );
 
 		include_once plugin_dir_path( __FILE__ ) . 'class-sixtenpress-settings-sanitize.php';
-		$sanitize = new SixTenPressSettingsSanitize( $this->fields, $this->get_setting(), $this->page );
+		$sanitize = new SixTenPressSettingsSanitize( $this->register_fields(), $this->get_setting(), $this->page, $this->get_setting_name() );
 		return $sanitize->sanitize( $new_value );
 	}
 
