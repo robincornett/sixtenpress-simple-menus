@@ -181,7 +181,7 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 				'section'  => 'general',
 				'args'     => array(
 					'label'   => __( 'Select a registered menu location to modify.', 'sixtenpress-simple-menus' ),
-					'choices' => $this->pick_locations(),
+					'choices' => array( $this, 'pick_locations' ),
 					'options' => 'locations',
 				    'setting' => 'nav_location',
 				),
@@ -205,13 +205,6 @@ class SixTenPressSimpleMenuSettings extends SixTenPressSettings {
 		return $fields;
 	}
 
-	/**
-	 * Callback for the general section.
-	 * @return string
-	 */
-	public function general_section_description() {
-		return '';
-	}
 	/**
 	 * Callback for the content types section description.
 	 */
