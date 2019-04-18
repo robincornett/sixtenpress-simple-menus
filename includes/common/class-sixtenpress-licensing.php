@@ -1,7 +1,8 @@
 <?php
+
 /**
  * Generic licensing class to work with EDD Software Licensing.
- * @copyright 2016 Robin Cornett
+ * @copyright 2016-2019 Robin Cornett
  */
 class SixTenPressLicensing extends SixTenPressSettings {
 
@@ -74,7 +75,7 @@ class SixTenPressLicensing extends SixTenPressSettings {
 	 * The plugin author.
 	 * @var $author
 	 */
-	protected $author;
+	protected $author = 'Robin Cornett';
 
 	/**
 	 * Action for our custom nonce.
@@ -94,6 +95,10 @@ class SixTenPressLicensing extends SixTenPressSettings {
 	 */
 	public function updater() {
 
+		if ( is_multisite() && ! is_main_site() ) {
+			return;
+		}
+
 		if ( ! class_exists( 'EDD_SL_Plugin_Updater' ) ) {
 			// load our custom updater if it doesn't already exist
 			include plugin_dir_path( __FILE__ ) . 'class-eddpluginupdater.php';
@@ -107,16 +112,46 @@ class SixTenPressLicensing extends SixTenPressSettings {
 			'url'       => home_url(),
 		) );
 
-		if ( is_multisite() && ! is_main_site() ) {
-			return;
-		}
-
 		$this->activate_license();
 		$this->deactivate_license();
 	}
 
 	/**
+	 * Register the licensing section.
+	 * @return array
+	 */
+	protected function register_section() {
+		return array(
+			'licensing' => array(
+				'id'    => 'licensing',
+				'tab'   => 'licensing',
+				'title' => __( 'Six/Ten Press License Key(s)', 'sixtenpress' ),
+			),
+		);
+	}
+
+	/**
+	 * Register the license key field.
+	 * @return array
+	 */
+	protected function register_fields() {
+		return array(
+			array(
+				'id'       => $this->key . '_key',
+				'title'    => $this->name,
+				'callback' => 'do_license_key_field',
+				'section'  => $this->is_sixten_active() ? 'licensing' : $this->tab,
+				'args'     => array(
+					'setting' => $this->key . '_key',
+					'label'   => __( 'Enter your license key.', 'sixtenpress' ),
+				),
+			),
+		);
+	}
+
+	/**
 	 * License key input field
+	 *
 	 * @param  array $args parameters to define field
 	 *
 	 * @since 1.4.0
@@ -124,11 +159,14 @@ class SixTenPressLicensing extends SixTenPressSettings {
 	public function do_license_key_field( $args ) {
 		if ( 'valid' === $this->status ) {
 			$style = 'color:white;background-color:green;border-radius:100%;margin-right:8px;vertical-align:middle;';
-			printf( '<span class="dashicons dashicons-yes" style="%s"></span>',
-				esc_attr( $style )
+			printf(
+				'<span class="dashicons dashicons-yes" style="%s"><span class="screen-reader-text">%s</span></span>',
+				esc_attr( $style ),
+				esc_html__( 'Activated', 'sixtenpress' )
 			);
 		}
-		printf( '<input type="password" class="regular-text" id="%1$s" name="%1$s" value="%2$s" />',
+		printf(
+			'<input type="password" class="regular-text" id="%1$s" name="%1$s" value="%2$s" />',
 			esc_attr( $args['setting'] ),
 			esc_attr( $this->license )
 		);
@@ -145,38 +183,42 @@ class SixTenPressLicensing extends SixTenPressSettings {
 	}
 
 	/**
-	 * License deactivation button
+	 * License activation button
 	 */
-	public function add_activation_button() {
+	protected function add_activation_button() {
 
 		if ( 'valid' === $this->status ) {
 			return;
 		}
 
-		$value = sprintf( __( 'Activate', 'sixtenpress-featured-content' ) );
-		$name  = 'sixtenpress_activate';
-		$class = 'button-primary';
-		$this->print_button( $class, $name, $value );
+		$this->print_button(
+			'button-primary',
+			'sixtenpress_activate',
+			__( 'Activate', 'sixtenpress' )
+		);
 	}
 
 	/**
 	 * License deactivation button
 	 */
-	public function add_deactivation_button() {
+	protected function add_deactivation_button() {
 
 		if ( 'valid' !== $this->status ) {
 			return;
 		}
 
-		$value = sprintf( __( 'Deactivate', 'sixtenpress-featured-content' ) );
-		$name  = $this->key . '_deactivate';
-		$class = 'button-secondary';
-		$this->print_button( $class, $name, $value );
+		$this->print_button(
+			'button-secondary',
+			$this->key . '_deactivate',
+			__( 'Deactivate', 'sixtenpress' )
+		);
 	}
 
 	/**
 	 * Sanitize license key
+	 *
 	 * @param  string $new_value license key
+	 *
 	 * @return string license key
 	 *
 	 * @since 1.4.0
@@ -189,108 +231,114 @@ class SixTenPressLicensing extends SixTenPressSettings {
 		if ( $license !== $new_value || 'valid' !== $this->status ) {
 			$this->activate_license( $new_value );
 		}
+
 		return sanitize_text_field( $new_value );
 	}
 
 	/**
 	 * Activate plugin license
+	 *
 	 * @param  string $new_value entered license key
-	 * @uses do_remote_request()
+	 *
+	 * @uses  do_remote_request()
 	 *
 	 * @since 1.4.0
 	 */
-	public function activate_license( $new_value = '' ) {
+	protected function activate_license( $new_value = '' ) {
 
 		if ( 'valid' === $this->status ) {
 			return;
 		}
 
 		// listen for our activate button to be clicked
-		if ( isset( $_POST['sixtenpress_activate'] ) ) {
-
-			// If the user doesn't have permission to save, then display an error message
-			if ( ! $this->user_can_save( $this->action, $this->nonce ) ) {
-				wp_die( esc_attr__( 'Something unexpected happened. Please try again.', 'sixtenpress-featured-content' ) );
-			}
-
-			// run a quick security check
-			if ( ! check_admin_referer( $this->action, $this->nonce ) ) {
-				return; // get out if we didn't click the Activate button
-			}
-
-			// retrieve the license from the database
-			$license = trim( $this->license );
-			$license = $new_value !== $license ? trim( $new_value ) : $license;
-
-			if ( empty( $license ) || empty( $new_value ) ) {
-				delete_option( $this->key . '_status' );
-				return;
-			}
-
-			// data to send in our API request
-			$api_params = array(
-				'edd_action' => 'activate_license',
-				'license'    => $license,
-				'item_name'  => urlencode( $this->name ), // the name of our product in EDD
-				'url'        => esc_url( home_url() ),
-			);
-			$license_data = $this->do_remote_request( $api_params );
-			$status       = 'invalid';
-			if ( $license_data ) {
-				$status = $license_data->license;
-				if ( false === $license_data->success ) {
-					$status = $license_data->error;
-				}
-			}
-
-			// $license_data->license will be either "valid" or "invalid"
-			update_option( $this->key . '_status', $status );
+		if ( empty( $_POST['sixtenpress_activate'] ) ) {
+			return;
 		}
+
+		// If the user doesn't have permission to save, then display an error message
+		if ( ! $this->user_can_save( $this->action, $this->nonce ) ) {
+			wp_die( esc_attr__( 'Something unexpected happened. Please try again.', 'sixtenpress' ) );
+		}
+
+		// run a quick security check
+		if ( ! check_admin_referer( $this->action, $this->nonce ) ) {
+			return; // get out if we didn't click the Activate button
+		}
+
+		// retrieve the license from the database
+		$license = trim( $this->license );
+		$license = $new_value !== $license ? trim( $new_value ) : $license;
+
+		if ( empty( $license ) || empty( $new_value ) ) {
+			delete_option( $this->key . '_status' );
+
+			return;
+		}
+
+		// data to send in our API request
+		$api_params   = array(
+			'edd_action' => 'activate_license',
+			'license'    => $license,
+			'item_name'  => rawurlencode( $this->name ), // the name of our product in EDD
+			'url'        => esc_url( home_url() ),
+		);
+		$license_data = $this->do_remote_request( $api_params );
+		$status       = 'invalid';
+		if ( $license_data ) {
+			$status = $license_data->license;
+			if ( false === $license_data->success ) {
+				$status = $license_data->error;
+			}
+		}
+
+		// $license_data->license will be either "valid" or "invalid"
+		update_option( $this->key . '_status', $status );
 	}
 
 	/**
 	 * Deactivate license
-	 * @uses do_remote_request()
+	 * @uses  do_remote_request()
 	 *
 	 * @since 1.4.0
 	 */
-	function deactivate_license() {
+	protected function deactivate_license() {
 
 		// listen for our activate button to be clicked
-		if ( isset( $_POST[$this->key . '_deactivate'] ) ) {
+		if ( empty( $_POST[ $this->key . '_deactivate' ] ) ) {
+			return;
+		}
 
-			// If the user doesn't have permission to save, then display an error message
-			if ( ! $this->user_can_save( $this->action, $this->nonce ) ) {
-				wp_die( esc_attr__( 'Something unexpected happened. Please try again.', 'sixtenpress-featured-content' ) );
-			}
+		// If the user doesn't have permission to save, then display an error message
+		if ( ! $this->user_can_save( $this->action, $this->nonce ) ) {
+			wp_die( esc_attr__( 'Something unexpected happened. Please try again.', 'sixtenpress' ) );
+		}
 
-			// run a quick security check
-			if ( ! check_admin_referer( $this->action, $this->nonce ) ) {
-				return; // get out if we didn't click the Activate button
-			}
+		// run a quick security check
+		if ( ! check_admin_referer( $this->action, $this->nonce ) ) {
+			return; // get out if we didn't click the Activate button
+		}
 
-			// retrieve the license from the database
-			$license = trim( $this->license );
+		// retrieve the license from the database
+		$license = trim( $this->license );
 
-			// data to send in our API request
-			$api_params = array(
-				'edd_action' => 'deactivate_license',
-				'license'    => $license,
-				'item_name'  => urlencode( $this->name ), // the name of our product in EDD
-				'url'        => home_url(),
-			);
-			$license_data = $this->do_remote_request( $api_params );
+		// data to send in our API request
+		$api_params   = array(
+			'edd_action' => 'deactivate_license',
+			'license'    => $license,
+			'item_name'  => rawurlencode( $this->name ), // the name of our product in EDD
+			'url'        => home_url(),
+		);
+		$license_data = $this->do_remote_request( $api_params );
 
-			// $license_data->license will be either "deactivated" or "failed"
-			if ( is_object( $license_data ) && 'deactivated' === $license_data->license ) {
-				delete_option( $this->key . '_status' );
-			}
+		// $license_data->license will be either "deactivated" or "failed"
+		if ( is_object( $license_data ) && 'deactivated' === $license_data->license ) {
+			delete_option( $this->key . '_status' );
 		}
 	}
 
 	/**
 	 * Weekly cron job to compare activated license with the server.
-	 * @uses check_license()
+	 * @uses  check_license()
 	 * @since 2.0.0
 	 */
 	public function weekly_license_check() {
@@ -298,13 +346,14 @@ class SixTenPressLicensing extends SixTenPressSettings {
 			return;
 		}
 
-		if ( ! empty( $_POST[$this->nonce] ) ) {
+		if ( ! empty( $_POST[ $this->nonce ] ) ) {
 			return;
 		}
 
 		$license = get_option( $this->page . '_key', '' );
 		if ( empty( $license ) ) {
 			delete_option( $this->key . '_status' );
+
 			return;
 		}
 
@@ -325,6 +374,7 @@ class SixTenPressLicensing extends SixTenPressSettings {
 
 	/**
 	 * Update the plugin data setting.
+	 *
 	 * @param $license_data
 	 */
 	protected function update_data_option( $license_data ) {
@@ -349,28 +399,31 @@ class SixTenPressLicensing extends SixTenPressSettings {
 
 	/**
 	 * Check plugin license status
-	 * @uses do_remote_request()
-	 * @return mixed data
+	 * @uses  do_remote_request()
 	 *
-	 * @since 1.4.0
+	 * @param string $license
+	 *
+	 * @return mixed data
+	 ** @since 1.4.0
 	 */
 	protected function check_license( $license = '' ) {
 
 		$api_params = array(
 			'edd_action' => 'check_license',
 			'license'    => empty( $license ) ? $this->license : $license,
-			'item_name'  => urlencode( $this->name ), // the name of our product in EDD
+			'item_name'  => rawurlencode( $this->name ), // the name of our product in EDD
 			'url'        => esc_url( home_url() ),
 		);
 		if ( empty( $api_params['license'] ) ) {
 			return '';
 		}
+
 		return $this->do_remote_request( $api_params );
 	}
 
 	/**
 	 * Get the latest plugin version.
-	 * @uses do_remote_request()
+	 * @uses  do_remote_request()
 	 * @return mixed
 	 *
 	 * @since 2.0.0
@@ -381,29 +434,37 @@ class SixTenPressLicensing extends SixTenPressSettings {
 			'item_name'  => $this->name,
 			'slug'       => $this->slug,
 		);
-		$request = $this->do_remote_request( $api_params );
+		$request    = $this->do_remote_request( $api_params );
 
 		if ( $request && isset( $request->sections ) ) {
 			$request->sections = maybe_unserialize( $request->sections );
 		} else {
 			return false;
 		}
+
 		return $request->new_version;
 	}
 
 	/**
 	 * Send the request to the remote server.
+	 *
 	 * @param $api_params
 	 *
-	 * @return array|bool|mixed|object
+	 * @param int $timeout
 	 *
+	 * @return array|bool|mixed|object
 	 * @since 2.0.0
 	 */
 	private function do_remote_request( $api_params, $timeout = 15 ) {
-		$response = wp_remote_post( $this->url, array( 'timeout' => $timeout, 'sslverify' => false, 'body' => $api_params ) );
+		$response = wp_remote_post( $this->url, array(
+			'timeout'   => $timeout,
+			'sslverify' => false,
+			'body'      => $api_params,
+		) );
 		if ( is_wp_error( $response ) || 200 !== wp_remote_retrieve_response_code( $response ) ) {
 			return false;
 		}
+
 		return json_decode( wp_remote_retrieve_body( $response ) );
 	}
 
@@ -411,16 +472,20 @@ class SixTenPressLicensing extends SixTenPressSettings {
 	 * Print error messages.
 	 *
 	 * @since 1.4.0
+	 *
+	 * @param $message
+	 * @param string $class
 	 */
 	protected function do_error_message( $message, $class = '' ) {
 		if ( empty( $message ) ) {
 			return;
 		}
-		printf( '<div class="notice %s">%s</div>', $class, wp_kses_post( $message ) );
+		printf( '<div class="notice %s">%s</div>', esc_attr( $class ), wp_kses_post( $message ) );
 	}
 
 	/**
 	 * Convert a date string to a pretty format.
+	 *
 	 * @param $args
 	 * @param string $before
 	 * @param string $after
@@ -435,6 +500,7 @@ class SixTenPressLicensing extends SixTenPressSettings {
 
 	/**
 	 * Boolean to trigger the default 6/10 press error message.
+	 *
 	 * @param $error
 	 *
 	 * @return bool
@@ -444,6 +510,7 @@ class SixTenPressLicensing extends SixTenPressSettings {
 		if ( 'valid' === $this->status ) {
 			return $error;
 		}
+
 		return true;
 	}
 }
