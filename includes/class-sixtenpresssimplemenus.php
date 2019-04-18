@@ -39,28 +39,33 @@ class SixTenPressSimpleMenus {
 		add_action( 'admin_menu', array( $this->admin, 'set_taxonomy_metaboxes' ) );
 		add_filter( 'theme_mod_nav_menu_locations', array( $this->output, 'replace_menu' ) );
 		add_action( 'plugins_loaded', array( $this, 'load_settings_page' ), 20 );
+//		add_action( 'plugins_loaded', array( $this, 'load_licensing' ) );
 	}
 
 	/**
-	 *
+	 * Load the plugin settings page.
 	 */
 	public function load_settings_page() {
 		if ( ! class_exists( 'SixTenPressSettings' ) ) {
-			include_once plugin_dir_path( __FILE__ ) . '/common/class-sixtenpress-settings.php';
+			include_once 'common/class-sixtenpress-settings.php';
 		}
-		if ( ! class_exists( 'SixTenPressLicensing' ) ) {
-			include_once plugin_dir_path( __FILE__ ) . '/common/class-sixtenpress-licensing.php';
-		}
-		$files = array( 'licensing', 'page' );
-		foreach( $files as $file ) {
-			include_once plugin_dir_path( __FILE__ ) . 'class-sixtenpresssimplemenus-settings-' . $file .'.php';
-		}
+		include_once 'class-sixtenpresssimplemenus-settings-page.php';
 
 		$settings = new SixTenPressSimpleMenuSettings();
-//		$licensing      = new SixTenPressSimpleMenusLicensing();
 		add_action( 'admin_menu', array( $settings, 'maybe_add_settings_page' ) );
-//		add_action( 'admin_init', array( $licensing, 'set_up_licensing' ), 25 );
 		add_filter( 'sixtenpresssimplemenus_get_setting', array( $settings, 'get_setting' ) );
+	}
+
+	/**
+	 * Load the licensing class.
+	 */
+	public function load_licensing() {
+		if ( ! class_exists( 'SixTenPressLicensing' ) ) {
+			include_once 'common/class-sixtenpress-licensing.php';
+		}
+		include_once 'class-sixtenpresssimplemenus-settings-licensing.php';
+		$licensing = new SixTenPressSimpleMenusLicensing();
+		add_action( 'admin_init', array( $licensing, 'set_up_licensing' ), 25 );
 	}
 
 	/**
