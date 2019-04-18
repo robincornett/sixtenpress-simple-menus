@@ -54,7 +54,7 @@ module.exports = {
 	 */
 	packages: [
 		// 'assets-shortcodes',
-		// 'assets-sixtenpress',
+		'assets-sixtenpress',
 		// 'assets-slick',
 		// 'assets-tasks',
 		// 'assets-tgmpa'
