@@ -49,7 +49,7 @@ class SixTenPressSimpleMenus {
 		if ( ! class_exists( 'SixTenPressSettings' ) ) {
 			include_once 'common/class-sixtenpress-settings.php';
 		}
-		include_once 'class-sixtenpresssimplemenus-settings-page.php';
+		include_once 'settings/class-sixtenpresssimplemenus-settings-page.php';
 
 		$settings = new SixTenPressSimpleMenuSettings();
 		add_action( 'admin_menu', array( $settings, 'maybe_add_settings_page' ) );
@@ -63,7 +63,7 @@ class SixTenPressSimpleMenus {
 		if ( ! class_exists( 'SixTenPressLicensing' ) ) {
 			include_once 'common/class-sixtenpress-licensing.php';
 		}
-		include_once 'class-sixtenpresssimplemenus-settings-licensing.php';
+		include_once 'settings/class-sixtenpresssimplemenus-settings-licensing.php';
 		$licensing = new SixTenPressSimpleMenusLicensing();
 		add_action( 'admin_init', array( $licensing, 'set_up_licensing' ), 25 );
 	}
