@@ -14,20 +14,10 @@ class SixTenPressSimpleMenus {
 	protected $admin;
 
 	/**
-	 * @var $licensing SixTenPressSimpleMenusLicensing
-	 */
-	protected $licensing;
-
-	/**
 	 * The plugin output class.
 	 * @var $output SixTenPressSimpleMenusOutput
 	 */
 	protected $output;
-
-	/**
-	 * @var $settings SixTenPressSimpleMenuSettings
-	 */
-	protected $settings;
 
 	/**
 	 * SixTenPressSimpleMenus constructor.
@@ -66,11 +56,11 @@ class SixTenPressSimpleMenus {
 			include_once plugin_dir_path( __FILE__ ) . 'class-sixtenpresssimplemenus-settings-' . $file .'.php';
 		}
 
-		$this->settings = new SixTenPressSimpleMenuSettings();
-		$licensing      = new SixTenPressSimpleMenusLicensing();
-		add_action( 'admin_menu', array( $this->settings, 'maybe_add_settings_page' ) );
-		add_action( 'admin_init', array( $licensing, 'set_up_licensing' ), 25 );
-		add_filter( 'sixtenpresssimplemenus_get_setting', array( $this->settings, 'get_setting' ) );
+		$settings = new SixTenPressSimpleMenuSettings();
+//		$licensing      = new SixTenPressSimpleMenusLicensing();
+		add_action( 'admin_menu', array( $settings, 'maybe_add_settings_page' ) );
+//		add_action( 'admin_init', array( $licensing, 'set_up_licensing' ), 25 );
+		add_filter( 'sixtenpresssimplemenus_get_setting', array( $settings, 'get_setting' ) );
 	}
 
 	/**
