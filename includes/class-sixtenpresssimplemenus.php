@@ -25,7 +25,7 @@ class SixTenPressSimpleMenus {
 	 * @param $admin
 	 * @param $output
 	 */
-	function __construct( $admin, $output ) {
+	public function __construct( $admin, $output ) {
 		$this->admin  = $admin;
 		$this->output = $output;
 	}
@@ -35,9 +35,9 @@ class SixTenPressSimpleMenus {
 	 */
 	public function run() {
 		add_action( 'plugins_loaded', array( $this, 'load_textdomain' ) );
+		add_action( 'plugins_loaded', array( $this, 'initialize_filter' ) );
 		add_action( 'admin_menu', array( $this->admin, 'set_post_metaboxes' ) );
 		add_action( 'admin_menu', array( $this->admin, 'set_taxonomy_metaboxes' ) );
-		add_filter( 'theme_mod_nav_menu_locations', array( $this->output, 'replace_menu' ) );
 		add_action( 'plugins_loaded', array( $this, 'load_settings_page' ), 20 );
 //		add_action( 'plugins_loaded', array( $this, 'load_licensing' ) );
 	}
@@ -109,5 +109,13 @@ class SixTenPressSimpleMenus {
 	 */
 	public function load_textdomain() {
 		load_plugin_textdomain( 'sixtenpress-simple-menus', false, dirname( plugin_basename( __FILE__ ) ) . '/languages/' );
+	}
+
+	/**
+	 * Wait to initialize the filter until after the plugins have loaded.
+	 * This prevents errors in the Customizer.
+	 */
+	public function initialize_filter() {
+		add_filter( 'theme_mod_nav_menu_locations', array( $this->output, 'replace_menu' ) );
 	}
 }
